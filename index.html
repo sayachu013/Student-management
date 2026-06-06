@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塾専用・個別指導カルテシステム</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen pb-12">
+
+    <header class="bg-indigo-600 text-white flex justify-between items-center px-4 py-4 shadow-md sticky top-0 z-50">
+        <span id="headerTitle" class="font-bold text-base">塾専用・個別指導カルテ</span>
+        <button id="adminBtn" onclick="toggleAdminModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-bold py-1.5 px-3 rounded-lg transition active:scale-95">
+            👥 塾の管理
+        </button>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 mt-6">
+        
+        <div id="listViewArea">
+            <p class="text-sm font-bold text-gray-700 mb-3 px-1">カルテを見る生徒を選択してください：</p>
+            <div id="studentMenuGrid" class="grid grid-cols-1 gap-3">
+                <div class="text-center text-gray-400 py-8 text-xs bg-white rounded-xl border">生徒情報を読み込み中...</div>
+            </div>
+        </div>
+
+        <div id="roomViewArea" class="hidden space-y-5">
+            
+            <button onclick="backToListView()" class="flex items-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition active:scale-95 border border-indigo-100">
+                ⬅ 生徒一覧に戻る
+            </button>
+
+            <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-5 rounded-xl shadow-md">
+                <div class="flex items-baseline gap-2 mb-2">
+                    <h2 id="roomStudentName" class="text-2xl font-bold">--</h2>
+                    <span id="roomStudentGrade" class="text-xs bg-white/20 px-2 py-0.5 rounded">--</span>
+                </div>
+                <p id="roomStudentSubjects" class="text-xs text-indigo-100 mt-1">受講教科: --</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">📋 新しい指導カルテを記入</h3>
+                <form id="reportForm" onsubmit="submitReport(event)">
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">① 指導日</label>
+                            <input type="date" id="reportDate" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">② 教科</label>
+                            <select id="reportSubject" required class="w-full p-2.5 border rounded-lg text-sm bg-white">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">③ 担当講師</label>
+                        <select id="reportTeacher" required class="w-full p-2.5 border rounded-lg text-sm bg-white">
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">④ 進度（本日の単元・内容）</label>
+                        <input type="text" id="reportProgress" placeholder="例：正負の数の加法・減法 P.12-14" required class="w-full p-2.5 border rounded-lg text-sm">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">⑤ 宿題</label>
+                        <input type="text" id="reportHomework" placeholder="例：ワーク P.15の問1〜問4まで" required class="w-full p-2.5 border rounded-lg text-sm">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">⑥ 補足（授業中の様子・理解度など）</label>
+                        <textarea id="reportContent" rows="3" placeholder="集中度や次回への引き継ぎ事項など" required class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition active:scale-95 text-sm">
+                        カルテを送信して保存
+                    </button>
+                </form>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-bold text-gray-700 mb-3 px-1">📜 過去の指導履歴（この生徒のみ）</h3>
+                <div id="timeline" class="space-y-4">
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="adminModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="font-bold text-gray-800">塾のデータ管理</h3>
+                <button onclick="toggleAdminModal()" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+            </div>
+            
+            <div class="flex border-b mb-4 text-sm font-bold">
+                <button id="tabStudentBtn" onclick="switchAdminTab('student')" class="flex-1 py-2 text-center text-indigo-600 border-b-2 border-indigo-600">生徒の管理</button>
+                <button id="tabTeacherBtn" onclick="switchAdminTab('teacher')" class="flex-1 py-2 text-center text-gray-500 border-b-2 border-transparent">講師の管理</button>
+            </div>
+
+            <div id="adminStudentArea" class="flex flex-col flex-1 overflow-hidden">
+                <form onsubmit="addStudent(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 overflow-y-auto max-h-[30vh] shrink-0 text-xs">
+                    <div class="mb-2">
+                        <label class="block font-bold text-gray-600 mb-0.5">生徒氏名</label>
+                        <input type="text" id="newStudentName" placeholder="例：鈴木 太郎" required class="w-full p-1.5 border rounded bg-white">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block font-bold text-gray-600 mb-0.5">学年</label>
+                        <select id="newStudentGrade" required class="w-full p-1.5 border rounded bg-white">
+                            <option value="小1">小1</option><option value="小2">小2</option><option value="小3">小3</option>
+                            <option value="小4">小4</option><option value="小5">小5</option><option value="小6">小6</option>
+                            <option value="中1" selected>中1</option><option value="中2">中2</option><option value="中3">中3</option>
+                            <option value="高1">高1</option><option value="高2">高2</option><option value="高3">高3</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block font-bold text-gray-600 mb-2">受講教科（複数選択可）</label>
+                        <div class="grid grid-cols-3 gap-1 bg-white p-1.5 rounded border">
+                            <label class="flex items-center gap-0.5"><input type="checkbox" name="newSubjects" value="数学/算数"> 数・算</label>
+                            <label class="flex items-center gap-0.5"><input type="checkbox" name="newSubjects" value="英語"> 英語</label>
+                            <label class="flex items-center gap-0.5"><input type="checkbox" name="newSubjects" value="国語"> 国語</label>
+                            <label class="flex items-center gap-0.5"><input type="checkbox" name="newSubjects" value="理科"> 理科</label>
+                            <label class="flex items-center gap-0.5"><input type="checkbox" name="newSubjects" value="社会"> 社会</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded transition">生徒を登録</button>
+                </form>
+                <div id="adminStudentList" class="overflow-y-auto flex-1 space-y-2 border-t pt-2 text-xs"></div>
+            </div>
+
+            <div id="adminTeacherArea" class="flex flex-col flex-1 overflow-hidden hidden">
+                <form onsubmit="addTeacher(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 shrink-0 text-xs">
+                    <div class="mb-2">
+                        <label class="block font-bold text-gray-600 mb-0.5">講師氏名</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="newTeacherName" placeholder="例：渡邊 先生" required class="flex-1 p-1.5 border rounded bg-white">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 rounded transition">登録</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="adminTeacherList" class="overflow-y-auto flex-1 space-y-2 border-t pt-2 text-xs"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // あなたが苦労して発行してくださった最新の個人Gmail側GASURLに差し替えました！
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwBowSWnS7rKK5YF_THnVpzP_ufC0NQIqObyqyi0Y4V9eLccHfxYmIqlL2b3-ziVV2n5A/exec";
+
+        let globalStudents = []; 
+        let globalTeachers = [];
+        let currentActiveStudent = null; 
+
+        document.getElementById('reportDate').value = new Date().toISOString().substring(0, 10);
+        
+        fetchStudents();
+        fetchTeachers();
+
+        function fetchStudents() {
+            fetch(`${GAS_URL}?resource=students`)
+                .then(res => res.json())
+                .then(data => {
+                    globalStudents = data;
+                    renderStudentMenuGrid();
+                    renderAdminStudentList();
+                }).catch(() => alert("生徒情報の取得に失敗しました。"));
+        }
+
+        function fetchTeachers() {
+            fetch(`${GAS_URL}?resource=teachers`)
+                .then(res => res.json())
+                .then(data => {
+                    globalTeachers = data;
+                    updateTeacherDropdown();
+                    renderAdminTeacherList();
+                }).catch(() => {
+                    globalTeachers = [];
+                    updateTeacherDropdown();
+                    renderAdminTeacherList();
+                });
+        }
+
+        function renderStudentMenuGrid() {
+            const grid = document.getElementById('studentMenuGrid');
+            grid.innerHTML = '';
+            if (globalStudents.length === 0) {
+                grid.innerHTML = `<div class="text-center text-gray-500 py-10 bg-white rounded-xl border border-dashed border-gray-300"><p class="font-bold text-sm">登録されている生徒がいません</p><p class="text-xs text-gray-400 mt-1">右上の「👥 塾の管理」から追加してください。</p></div>`;
+                return;
+            }
+            globalStudents.forEach(st => {
+                const subs = Array.isArray(st.subjects) ? st.subjects.join(', ') : (st.subjects || 'なし');
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-xs border border-gray-200 hover:border-indigo-400 cursor-pointer transition active:scale-98 flex justify-between items-center group bg-white";
+                card.onclick = () => enterStudentRoom(st.name);
+                card.innerHTML = `<div><div class="font-bold text-gray-800 text-base group-hover:text-indigo-600">${escapeHtml(st.name)}</div><div class="text-xs text-gray-500 mt-1"><span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium mr-2">${escapeHtml(st.grade)}</span><span>教科: ${escapeHtml(subs)}</span></div></div><div class="text-indigo-500 font-bold text-xl group-hover:translate-x-1 transition-transform">➔</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateTeacherDropdown() {
+            const select = document.getElementById('reportTeacher');
+            select.innerHTML = '<option value="">-- 講師を選択してください --</option>';
+            globalTeachers.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.name; opt.innerText = t.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function enterStudentRoom(studentName) {
+            currentActiveStudent = studentName;
+            const studentInfo = globalStudents.find(st => st.name === studentName);
+            if (!studentInfo) return;
+
+            document.getElementById('listViewArea').classList.add('hidden');
+            document.getElementById('adminBtn').classList.add('hidden'); 
+            document.getElementById('roomViewArea').classList.remove('hidden');
+            document.getElementById('headerTitle').innerText = `【${studentName}カルテ】`;
+
+            document.getElementById('roomStudentName').innerText = studentInfo.name;
+            document.getElementById('roomStudentGrade').innerText = studentInfo.grade;
+            const subs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects.join(', ') : (studentInfo.subjects || 'なし');
+            document.getElementById('roomStudentSubjects').innerText = `受講教科: ${subs}`;
+
+            const subjectSelect = document.getElementById('reportSubject');
+            subjectSelect.innerHTML = '';
+            
+            let studentSubs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects : (studentInfo.subjects ? studentInfo.subjects.split(",") : []);
+            if (studentSubs.length > 0) {
+                studentSubs.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub; opt.innerText = sub;
+                    subjectSelect.appendChild(opt);
+                });
+            } else {
+                ['数学/算数','英語','国語','理科','社会'].forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub; opt.innerText = sub;
+                    subjectSelect.appendChild(opt);
+                });
+            }
+
+            loadRoomTimeline(studentName);
+        }
+
+        function backToListView() {
+            currentActiveStudent = null;
+            document.getElementById('roomViewArea').classList.add('hidden');
+            document.getElementById('listViewArea').classList.remove('hidden');
+            document.getElementById('adminBtn').classList.remove('hidden');
+            document.getElementById('headerTitle').innerText = "塾専用・個別指導カルテ";
+        }
+
+        function loadRoomTimeline(studentName) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '<div class="text-center text-gray-400 py-4 text-xs">過去のカルテを集約中...</div>';
+
+            fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(data => {
+                timeline.innerHTML = '';
+                const filteredData = data.filter(item => item.student === studentName);
+
+                if (filteredData.length === 0) {
+                    timeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">指導履歴（カルテ）はまだありません。</div>';
+                    return;
+                }
+                
+                filteredData.sort((a, b) => b.id - a.id).forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-xs border border-gray-200 relative";
+                    card.innerHTML = `
+                        <button onclick="deleteReport('${item.id}', '${escapeHtml(item.student)}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 text-xs font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded transition">
+                            🗑️ 削除
+                        </button>
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">${escapeHtml(item.subject)}</span>
+                            <span class="text-xs text-gray-400">${escapeHtml(item.date)}</span>
+                        </div>
+                        <div class="text-xs space-y-1.5 text-gray-700">
+                            <div><strong class="text-gray-500">【担 当】</strong> ${escapeHtml(item.teacher || '未設定')}</div>
+                            <div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div>
+                            <div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div>
+                            <div class="pt-1 border-t border-dashed mt-1.5">
+                                <strong class="text-gray-500 block mb-0.5">【補 足】</strong>
+                                <p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p>
+                            </div>
+                        </div>
+                    `;
+                    timeline.appendChild(card);
+                });
+            }).catch(() => {
+                timeline.innerHTML = '<div class="text-center text-red-500 py-4 text-xs">カルテの集約に失敗しました。</div>';
+            });
+        }
+
+        function submitReport(e) {
+            e.preventDefault();
+            if (!currentActiveStudent) return;
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "カルテを保存中...";
+
+            const payload = {
+                resource: "reports",
+                date: document.getElementById('reportDate').value,
+                student: currentActiveStudent,
+                subject: document.getElementById('reportSubject').value,
+                teacher: document.getElementById('reportTeacher').value,
+                progress: document.getElementById('reportProgress').value,
+                homework: document.getElementById('reportHomework').value,
+                content: document.getElementById('reportContent').value
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(() => {
+                alert("カルテを保存しました！");
+                document.getElementById('reportProgress').value = '';
+                document.getElementById('reportHomework').value = '';
+                document.getElementById('reportContent').value = '';
+                loadRoomTimeline(currentActiveStudent);
+            }).catch(() => alert("保存に失敗しました。")).finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "カルテを送信して保存";
+            });
+        }
+
+        function deleteReport(reportId, studentName) {
+            if (!confirm("本当にこの指導記録を削除しますか？")) return;
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ resource: "reports", action: "delete", id: reportId })
+            }).then(() => {
+                alert("記録を削除しました。");
+                loadRoomTimeline(studentName);
+            }).catch(() => alert("削除に失敗しました。"));
+        }
+
+        function addStudent(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('newStudentName');
+            const name = nameInput.value.trim();
+            if (globalStudents.some(st => st.name === name)) { alert("その生徒は既に登録されています。"); return; }
+
+            const payload = {
+                resource: "students",
+                name: name,
+                grade: document.getElementById('newStudentGrade').value,
+                subjects: Array.from(document.querySelectorAll('input[name="newSubjects"]:checked')).map(cb => cb.value)
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            }).then(() => {
+                nameInput.value = '';
+                document.querySelectorAll('input[name="newSubjects"]').forEach(cb => cb.checked = false);
+                fetchStudents();
+            }).catch(() => alert("登録に失敗しました。"));
+        }
+
+        function deleteStudent(id, name) {
+            if (!confirm(`本当に「${name}」さんを削除しますか？`)) return;
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ resource: "students", action: "delete", name: name })
+            }).then(() => {
+                if (currentActiveStudent === name) backToListView();
+                fetchStudents();
+            }).catch(() => alert("削除に失敗しました。"));
+        }
+
+        function addTeacher(e) {
+            e.preventDefault();
+            const input = document.getElementById('newTeacherName');
+            const name = input.value.trim();
+            if (globalTeachers.some(t => t.name === name)) { alert("その講師名は既に登録されています。"); return; }
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ resource: "teachers", name: name })
+            }).then(() => {
+                input.value = '';
+                fetchTeachers();
+            }).catch(() => alert("登録に失敗しました。"));
+        }
+
+        function deleteTeacher(id, name) {
+            if (!confirm(`本当に「${name}」先生を削除しますか？`)) return;
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ resource: "teachers", action: "delete", name: name })
+            }).then(() => {
+                fetchTeachers();
+            }).catch(() => alert("削除に失敗しました。"));
+        }
+
+        function renderAdminStudentList() {
+            const list = document.getElementById('adminStudentList'); list.innerHTML = '';
+            globalStudents.forEach(st => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
+                div.innerHTML = `<div><strong>${escapeHtml(st.name)}</strong> (${escapeHtml(st.grade)})</div><button onclick="deleteStudent('${st.id}', '${escapeHtml(st.name)}')" class="text-red-500 font-bold px-1 hover:bg-red-50">削除</button>`;
+                list.appendChild(div);
+            });
+        }
+
+        function renderAdminTeacherList() {
+            const list = document.getElementById('adminTeacherList'); list.innerHTML = '';
+            if (globalTeachers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">登録された講師はいません。</div>'; return; }
+            globalTeachers.forEach(t => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
+                div.innerHTML = `<div><strong>${escapeHtml(t.name)}</strong></div><button onclick="deleteTeacher('${t.id}', '${escapeHtml(t.name)}')" class="text-red-500 font-bold px-1 hover:bg-red-50">削除</button>`;
+                list.appendChild(div);
+            });
+        }
+
+        function switchAdminTab(tab) {
+            const sBtn = document.getElementById('tabStudentBtn'); const tBtn = document.getElementById('tabTeacherBtn');
+            const sArea = document.getElementById('adminStudentArea'); const tArea = document.getElementById('adminTeacherArea');
+            if (tab === 'student') {
+                sBtn.className = "flex-1 py-2 text-center text-indigo-600 border-b-2 border-indigo-600"; tBtn.className = "flex-1 py-2 text-center text-gray-500 border-b-2 border-transparent";
+                sArea.classList.remove('hidden'); tArea.classList.add('hidden');
+            } else {
+                tBtn.className = "flex-1 py-2 text-center text-indigo-600 border-b-2 border-indigo-600"; sBtn.className = "flex-1 py-2 text-center text-gray-500 border-b-2 border-transparent";
+                tArea.classList.remove('hidden'); sArea.classList.add('hidden');
+            }
+        }
+
+        function toggleAdminModal() { document.getElementById('adminModal').classList.toggle('hidden'); }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
+    </script>
+</body>
+</html>
