@@ -317,13 +317,25 @@
             }).catch(() => {});
         }
 
-        // ★【最重要】T15:00...などのISOタイムスタンプ等から、純粋な「年月日のみ」を切り出す強力なクレンジング関数
+        // 時差（9時間戻っている可能性）を考慮して、正しい日本時間の「年月日」を取り出す関数
         function cleanDateOnly(dateStr) {
             if (!dateStr) return '未定';
-            // 文字列化して最初の10文字（例：2026-06-08）だけを取り出す
-            let base = String(dateStr).substring(0, 10);
-            // 横ハイフン表記はスラッシュ表記へ統一して見やすく整形
-            return base.replace(/-/g, '/');
+            
+            // 日付オブジェクトに変換
+            const d = new Date(dateStr);
+            
+            // 変換に失敗した場合は、元の文字列の先頭10文字を返すフォールバック
+            if (isNaN(d.getTime())) {
+                let base = String(dateStr).substring(0, 10);
+                return base.replace(/-/g, '/');
+            }
+            
+            // UTCで「15:00」等になってズレるのを防ぐため、ローカル（日本時間）の年月日を取得
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            
+            return `${year}/${month}/${day}`;
         }
 
         function displayGlobalReminders() {
