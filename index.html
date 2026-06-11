@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>塾専用・個別指導総合カルテシステム</title>
+    <!-- スマホ用におしゃれに整えるためのCSS（Tailwind CSS） -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -18,11 +19,13 @@
 </head>
 <body class="bg-gray-100 min-h-screen pb-12">
 
+    <!-- アプリ起動時の全画面ローディング（Loading画面） -->
     <div id="appInitLoader" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-300">
         <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin-custom mb-4"></div>
         <p class="text-sm font-bold text-gray-500 tracking-wider">塾のデータを安全に読み込み中...</p>
     </div>
 
+    <!-- ヘッダー -->
     <header class="bg-indigo-600 text-white flex justify-between items-center px-4 py-4 shadow-md sticky top-0 z-50">
         <span id="headerTitle" class="font-bold text-base">塾専用・個別指導総合カルテ</span>
         <button id="adminBtn" onclick="toggleAdminModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-bold py-1.5 px-3 rounded-lg transition active:scale-95">
@@ -32,8 +35,10 @@
 
     <main class="max-w-md mx-auto px-4 mt-6">
         
+        <!-- 【画面A】トップ画面（全体リマインダ ＆ 全体振替・補習 ＆ 形態別開閉メニュー） -->
         <div id="listViewArea" class="space-y-6">
             
+            <!-- 塾全体のリマインダダッシュボード -->
             <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 shadow-xs">
                 <h3 class="text-xs font-bold text-amber-800 flex items-center gap-1 border-b border-amber-200 pb-2 mb-3">
                     📌 塾全体のリマインダ・備忘録一覧（期限順）
@@ -43,6 +48,7 @@
                 </div>
             </div>
 
+            <!-- 塾全体の振替・補習予定ダッシュボード -->
             <div class="bg-sky-50 border-2 border-sky-300 rounded-xl p-4 shadow-xs">
                 <h3 class="text-xs font-bold text-sky-800 flex items-center gap-1 border-b border-sky-200 pb-2 mb-3">
                     🔁 塾全体の振替・補習予定一覧（日付順）
@@ -52,6 +58,7 @@
                 </div>
             </div>
 
+            <!-- 生徒メニュー（形態別開閉式アコーディオン） -->
             <div>
                 <p class="text-sm font-bold text-gray-700 mb-3 px-1">学年・形態を選択してください：</p>
                 <div id="accordionContainer" class="space-y-2">
@@ -60,12 +67,15 @@
             </div>
         </div>
 
+        <!-- 【画面B】選択された生徒固有の「専用部屋」画面 -->
         <div id="roomViewArea" class="hidden space-y-5">
             
+            <!-- 一覧に戻るボタン -->
             <button onclick="backToListView()" class="flex items-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition active:scale-95 border border-indigo-100">
                 ⬅ 生徒一覧に戻る
             </button>
 
+            <!-- 生徒プロフィールカード -->
             <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-5 rounded-xl shadow-md">
                 <div class="flex items-baseline gap-2 mb-2">
                     <h2 id="roomStudentName" class="text-2xl font-bold">--</h2>
@@ -74,12 +84,14 @@
                 <p id="roomStudentSubjects" class="text-xs text-indigo-100 mt-1">受講教科: --</p>
             </div>
 
+            <!-- タブ切り替え（指導カルテ ⇔ 保護者面談 ⇔ 振替・補習） -->
             <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold shadow-2xs gap-0.5">
                 <button id="tabReportModeBtn" onclick="switchRoomTab('report')" class="flex-1 py-2 text-center bg-white text-indigo-700 rounded-md shadow-2xs">📋 指導カルテ</button>
                 <button id="tabInterviewModeBtn" onclick="switchRoomTab('interview')" class="flex-1 py-2 text-center text-gray-600 rounded-md">💬 面談記録</button>
                 <button id="tabScheduleModeBtn" onclick="switchRoomTab('schedule')" class="flex-1 py-2 text-center text-gray-600 rounded-md">🔁 振替・補習</button>
             </div>
 
+            <!-- 生徒個人の部屋内リマインダエリア -->
             <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 shadow-xs">
                 <div class="flex justify-between items-center border-b border-amber-200 pb-2 mb-2">
                     <h3 class="text-xs font-bold text-amber-800 flex items-center gap-1">📌 この生徒の重要リマインダ・備忘録</h3>
@@ -105,10 +117,14 @@
                 </form>
             </div>
 
+            <!-- 【部屋内タブA】指導日報・カルテエリア -->
             <div id="roomReportSection" class="space-y-5">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">📋 新しい指導カルテを記入</h3>
+                    <h3 id="reportFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">📋 新しい指導カルテを記入</h3>
                     <form id="reportForm" onsubmit="submitReport(event)">
+                        <!-- 修正時に元データを識別するための隠し項目 -->
+                        <input type="hidden" id="editReportId" value="">
+                        
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">① 指導日</label>
@@ -139,15 +155,18 @@
                     </form>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-gray-700 mb-3 px-1">📜 過去の指導履歴（この生徒のみ）</h3>
-                    <div id="timeline" class="space-y-4"></div>
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 px-1">📜 過去の指導履歴（タップして展開）</h3>
+                    <div id="timeline" class="space-y-2"></div>
                 </div>
             </div>
 
+            <!-- 【部屋内タブB】保護者面談記録エリア -->
             <div id="roomInterviewSection" class="space-y-5 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">💬 新しい保護者面談記録を記入</h3>
+                    <h3 id="interviewFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">💬 新しい保護者面談記録を記入</h3>
                     <form id="interviewForm" onsubmit="submitInterview(event)">
+                        <input type="hidden" id="editInterviewId" value="">
+                        
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">① 面談実施日</label>
@@ -171,10 +190,13 @@
                 </div>
             </div>
 
+            <!-- 【部屋内タブC】振替・補習記録エリア -->
             <div id="roomScheduleSection" class="space-y-5 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
-                    <h3 class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">🔁 新しい振替・補習予定を登録</h3>
+                    <h3 id="scheduleFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">🔁 新しい振替・補習予定を登録</h3>
                     <form id="scheduleForm" onsubmit="submitSchedule(event)">
+                        <input type="hidden" id="editScheduleId" value="">
+                        
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">① 実施予定日</label>
@@ -205,6 +227,7 @@
         </div>
     </main>
 
+    <!-- 🛠️ 塾管理ポップアップ -->
     <div id="adminModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -217,6 +240,7 @@
                 <button id="tabTeacherBtn" onclick="switchAdminTab('teacher')" class="flex-1 py-2 text-center text-gray-500 border-b-2 border-transparent">講師の管理</button>
             </div>
 
+            <!-- 生徒管理 -->
             <div id="adminStudentArea" class="flex flex-col flex-1 overflow-hidden">
                 <form onsubmit="addStudent(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 overflow-y-auto max-h-[35vh] shrink-0 text-xs">
                     <div class="mb-2">
@@ -246,6 +270,7 @@
                 <div id="adminStudentList" class="overflow-y-auto flex-1 space-y-2 border-t pt-2 text-xs"></div>
             </div>
 
+            <!-- 講師管理 -->
             <div id="adminTeacherArea" class="flex flex-col flex-1 overflow-hidden hidden">
                 <form onsubmit="addTeacher(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 shrink-0 text-xs">
                     <div class="mb-2">
@@ -261,12 +286,16 @@
         </div>
     </div>
 
+    <!-- 🧠 システムコントロールJavaScript -->
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwBowSWnS7rKK5YF_THnVpzP_ufC0NQIqObyqyi0Y4V9eLccHfxYmIqlL2b3-ziVV2n5A/exec";
 
         const GROUP_NAMES = ["高校生", "中3集団", "中3個別", "中2集団", "中2個別", "中1集団", "中1個別", "小学生"];
         let accordionStates = {};
         GROUP_NAMES.forEach(g => { accordionStates[g] = false; });
+
+        // カルテ開閉状態を記憶するためのオブジェクト
+        let reportAccordionStates = {};
 
         let globalStudents = []; 
         let globalTeachers = [];
@@ -283,7 +312,7 @@
         document.getElementById('scheduleDate').value = todayStr;
         document.getElementById('reminderDateInput').value = todayStr;
         
-        // 初期ロード並列処理
+        // 初期データ同期ロード
         Promise.all([
             fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; }),
             fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; }).catch(() => { globalTeachers = []; }),
@@ -317,25 +346,10 @@
             }).catch(() => {});
         }
 
-        // 時差（9時間戻っている可能性）を考慮して、正しい日本時間の「年月日」を取り出す関数
         function cleanDateOnly(dateStr) {
             if (!dateStr) return '未定';
-            
-            // 日付オブジェクトに変換
-            const d = new Date(dateStr);
-            
-            // 変換に失敗した場合は、元の文字列の先頭10文字を返すフォールバック
-            if (isNaN(d.getTime())) {
-                let base = String(dateStr).substring(0, 10);
-                return base.replace(/-/g, '/');
-            }
-            
-            // UTCで「15:00」等になってズレるのを防ぐため、ローカル（日本時間）の年月日を取得
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            
-            return `${year}/${month}/${day}`;
+            let base = String(dateStr).substring(0, 10);
+            return base.replace(/-/g, '/');
         }
 
         function displayGlobalReminders() {
@@ -349,7 +363,7 @@
             activeReminders.forEach(item => {
                 const div = document.createElement('div');
                 div.className = "bg-white p-2.5 rounded-lg border border-amber-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition";
-                const formattedDate = cleanDateOnly(item.date); // ノイズ完全シャットアウト
+                const formattedDate = cleanDateOnly(item.date);
                 div.innerHTML = `<div class="flex-1 min-w-0 pr-2"><span class="font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mr-1.5 shrink-0">${escapeHtml(item.student)}</span><span class="text-gray-700 font-medium whitespace-pre-wrap breakdown-all">${escapeHtml(item.content)}</span></div><div class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded shrink-0">📅 ${escapeHtml(formattedDate)}</div>`;
                 div.onclick = () => enterStudentRoom(item.student);
                 listContainer.appendChild(div);
@@ -366,7 +380,7 @@
             cacheSchedules.forEach(item => {
                 const div = document.createElement('div');
                 div.className = "bg-white p-2.5 rounded-lg border border-sky-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition";
-                const formattedDate = cleanDateOnly(item.date); // 画像にあったT15:00のノイズを完全に消滅させる処理
+                const formattedDate = cleanDateOnly(item.date);
                 div.innerHTML = `
                     <div class="flex-1 min-w-0 pr-2">
                         <span class="font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded mr-1.5 shrink-0">${escapeHtml(item.student)}</span>
@@ -447,6 +461,11 @@
                 }
             });
 
+            // 修正フォームモードのリセット
+            resetFormToNew('report');
+            resetFormToNew('interview');
+            resetFormToNew('schedule');
+
             switchRoomTab('report');
             displayRoomReminder(studentName);
             displayRoomTimeline(studentName);
@@ -478,12 +497,32 @@
             });
         }
 
+        // フォームを新規投稿モードに戻すヘルパー関数
+        function resetFormToNew(type) {
+            if (type === 'report') {
+                document.getElementById('editReportId').value = '';
+                document.getElementById('reportFormTitle').innerText = "📋 新しい指導カルテを記入";
+                document.getElementById('submitBtn').innerText = "カルテを送信して保存";
+                document.getElementById('submitBtn').className = "w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition text-sm";
+            } else if (type === 'interview') {
+                document.getElementById('editInterviewId').value = '';
+                document.getElementById('interviewFormTitle').innerText = "💬 新しい保護者面談記録を記入";
+                document.getElementById('interviewSubmitBtn').innerText = "面談記録を保存";
+                document.getElementById('interviewSubmitBtn').className = "w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition text-sm";
+            } else if (type === 'schedule') {
+                document.getElementById('editScheduleId').value = '';
+                document.getElementById('scheduleFormTitle').innerText = "🔁 新しい振替・補習予定を登録";
+                document.getElementById('scheduleSubmitBtn').innerText = "振替・補習予定を保存";
+                document.getElementById('scheduleSubmitBtn').className = "w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition text-sm";
+            }
+        }
+
         // --- 備忘録処理システム ---
         function displayRoomReminder(studentName) {
             const display = document.getElementById('reminderContentDisplay'); const deleteBtn = document.getElementById('clearReminderBtn');
             const record = globalReminders.filter(item => item.student === studentName).pop();
             if (record && record.content.trim() !== "") {
-                const formattedDate = cleanDateOnly(record.date); // ノイズ完全シャットアウト
+                const formattedDate = cleanDateOnly(record.date);
                 display.innerHTML = `⏰ 対応予定期限: <span class="underline font-bold">${escapeHtml(formattedDate)}</span><br><span class="text-sm font-bold text-amber-900 mt-1 block">⚠️ ${escapeHtml(record.content)}</span>`;
                 deleteBtn.classList.remove('hidden'); currentReminderRowId = record.id;
             } else {
@@ -516,24 +555,133 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", action: "delete", id: currentReminderRowId }) }).then(() => { fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; }); });
         }
 
-        // --- 指導カルテ履歴システム（即時反映） ---
+        // --- ★【大改造】指導カルテ履歴システム（日次アコーディオン開閉 ＆ 編集対応） ---
         function displayRoomTimeline(studentName) {
-            const timeline = document.getElementById('timeline'); const filteredData = cacheReports.filter(item => item.student === studentName); timeline.innerHTML = '';
-            if (filteredData.length === 0) { timeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">指導履歴はまだありません。</div>'; return; }
+            const timeline = document.getElementById('timeline'); 
+            const filteredData = cacheReports.filter(item => item.student === studentName); 
+            timeline.innerHTML = '';
+            
+            if (filteredData.length === 0) { 
+                timeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">指導履歴はまだありません。</div>'; return; 
+            }
+            
+            // ID（行番号）順に降順ソート
             filteredData.sort((a, b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
-                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-gray-200 relative"; 
-                const cleanDate = cleanDateOnly(item.date); // ノイズ完全シャットアウト
-                card.innerHTML = `<button onclick="deleteReport('${item.id}', '${escapeHtml(item.student)}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 text-xs font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded transition">🗑️ 削除</button><div class="flex items-center gap-2 mb-2.5"><span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">${escapeHtml(item.subject)}</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div><div class="text-xs space-y-1.5 text-gray-700"><div><strong class="text-gray-500">【担 当】</strong> ${escapeHtml(item.teacher || '未設定')}</div><div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div><div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div><div class="pt-1 border-t border-dashed mt-1.5"><strong class="text-gray-500 block mb-0.5">【補 足】</strong><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div></div>`;
-                timeline.appendChild(card);
+                const cleanDate = cleanDateOnly(item.date);
+                const isItemOpen = reportAccordionStates[item.id] || false; // 開閉状態の取得
+
+                // 1枚のアコーディオンカードラッパー
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "bg-white rounded-lg border border-gray-200 shadow-2xs overflow-hidden";
+
+                // 【ヘッダーバー】折りたたまれた1行メニュー
+                const headerBar = document.createElement('button');
+                headerBar.className = "w-full text-left px-3 py-2.5 bg-gray-50 hover:bg-gray-100 flex justify-between items-center text-xs font-bold transition-colors";
+                headerBar.innerHTML = `
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-[10px] text-gray-400 shrink-0">${isItemOpen ? '▼' : '▶'}</span>
+                        <span class="text-indigo-600 shrink-0">📅 ${escapeHtml(cleanDate)}</span>
+                        <span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] shrink-0">${escapeHtml(item.subject)}</span>
+                        <span class="text-gray-500 truncate font-normal">（担当: ${escapeHtml(item.teacher || '未設定')}）</span>
+                    </div>
+                `;
+                // バーをタップしたときにそのカルテだけを開閉する
+                headerBar.onclick = () => {
+                    reportAccordionStates[item.id] = !reportAccordionStates[item.id];
+                    displayRoomTimeline(studentName);
+                };
+                cardWrapper.appendChild(headerBar);
+
+                // 【コンテンツ部分】展開した中身
+                const contentBody = document.createElement('div');
+                contentBody.className = `p-3 text-xs space-y-2 border-t border-dashed border-gray-100 ${isItemOpen ? '' : 'hidden'}`;
+                contentBody.innerHTML = `
+                    <div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div>
+                    <div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div>
+                    <div class="pt-1.5 border-t border-gray-100 mt-1">
+                        <strong class="text-gray-500 block mb-0.5">【補 足】</strong>
+                        <p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p>
+                    </div>
+                    <!-- 操作ボタンエリア -->
+                    <div class="flex justify-end gap-2 pt-2 border-t border-gray-50">
+                        <button onclick="readyEditReport('${item.id}')" class="text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded text-[11px] transition">✏️ 編集</button>
+                        <button onclick="deleteReport('${item.id}', '${escapeHtml(item.student)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-[11px] transition">🗑️ 削除</button>
+                    </div>
+                `;
+                cardWrapper.appendChild(contentBody);
+                timeline.appendChild(cardWrapper);
             });
+        }
+
+        // 編集ボタンが押されたとき、フォームにデータを復元する
+        function readyEditReport(id) {
+            const item = cacheReports.find(r => r.id === id);
+            if (!item) return;
+
+            // 1. 各フォームに既存データを復元
+            document.getElementById('editReportId').value = item.id;
+            // 2026/06/08 のような形式から、input type="date"が認識できる「2026-06-08」へ逆変換
+            if (item.date) {
+                document.getElementById('reportDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            }
+            document.getElementById('reportSubject').value = item.subject;
+            document.getElementById('reportTeacher').value = item.teacher;
+            document.getElementById('reportProgress').value = item.progress || '';
+            document.getElementById('reportHomework').value = item.homework || '';
+            document.getElementById('reportContent').value = item.content || '';
+
+            // 2. フォームのタイトルとボタンの外見を「上書き修正モード」に変身させる
+            document.getElementById('reportFormTitle').innerText = "✏️ 指導カルテを修正中...";
+            document.getElementById('submitBtn').innerText = "🔧 変更内容を上書き保存する";
+            document.getElementById('submitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
+
+            // 3. フォームのある一番上へスムーズにスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function submitReport(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
-            const date = document.getElementById('reportDate').value; const subject = document.getElementById('reportSubject').value; const teacher = document.getElementById('reportTeacher').value; const progress = document.getElementById('reportProgress').value; const homework = document.getElementById('reportHomework').value; const content = document.getElementById('reportContent').value;
-            const dummyId = (Date.now()).toString(); cacheReports.push({ id: dummyId, student: currentActiveStudent, date, subject, teacher, progress, homework, content });
-            displayRoomTimeline(currentActiveStudent); document.getElementById('reportProgress').value = ''; document.getElementById('reportHomework').value = ''; document.getElementById('reportContent').value = ''; alert("カルテを保存しました！");
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", date, student: currentActiveStudent, subject, teacher, progress, homework, content }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
+            
+            const editId = document.getElementById('editReportId').value;
+            const date = document.getElementById('reportDate').value; 
+            const subject = document.getElementById('reportSubject').value; 
+            const teacher = document.getElementById('reportTeacher').value; 
+            const progress = document.getElementById('reportProgress').value; 
+            const homework = document.getElementById('reportHomework').value; 
+            const content = document.getElementById('reportContent').value;
+
+            if (editId) {
+                // ★【上書き修正（EDIT）ルート】
+                // キャッシュの該当データを即時書き換え
+                const index = cacheReports.findIndex(r => r.id === editId);
+                if (index !== -1) {
+                    cacheReports[index] = { id: editId, student: currentActiveStudent, date, subject, teacher, progress, homework, content };
+                }
+                displayRoomTimeline(currentActiveStudent);
+                resetFormToNew('report'); // 新規投稿モードへフォームを戻す
+                alert("カルテの変更内容を上書き保存しました！");
+
+                fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ resource: "reports", action: "edit", id: editId, date, student: currentActiveStudent, subject, teacher, progress, homework, content }) 
+                }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
+
+            } else {
+                // 【従来通りの新規追加ルート】
+                const dummyId = (Date.now()).toString(); 
+                cacheReports.push({ id: dummyId, student: currentActiveStudent, date, subject, teacher, progress, homework, content });
+                displayRoomTimeline(currentActiveStudent);
+                alert("カルテを保存しました！");
+
+                fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ resource: "reports", date, student: currentActiveStudent, subject, teacher, progress, homework, content }) 
+                }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; displayRoomTimeline(currentActiveStudent); }); });
+            }
+
+            document.getElementById('reportProgress').value = ''; 
+            document.getElementById('reportHomework').value = ''; 
+            document.getElementById('reportContent').value = '';
         }
 
         function deleteReport(reportId, studentName) {
@@ -542,24 +690,56 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", action: "delete", id: reportId }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
         }
 
-        // --- 面談記録システム（即時反映） ---
+        // --- 面談記録システム（編集対応） ---
         function displayRoomInterviewTimeline(studentName) {
             const iTimeline = document.getElementById('interviewTimeline'); const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
             if (filteredData.length === 0) { iTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">過去の面談記録はありません。</div>'; return; }
             filteredData.sort((a, b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
-                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-teal-200 relative bg-teal-50/10"; 
-                const cleanDate = cleanDateOnly(item.date); // ノイズ完全シャットアウト
-                card.innerHTML = `<button onclick="deleteInterview('${item.id}', '${escapeHtml(item.student)}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 text-xs font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded transition">🗑️ 削除</button><div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold text-white bg-teal-600 px-1.5 py-0.5 rounded">面談記録</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div><div class="text-xs text-gray-700 space-y-1.5"><div><strong class="text-gray-500">【対応者】</strong> ${escapeHtml(item.teacher || '未設定')}</div><div class="pt-1.5 border-t border-teal-100 mt-1.5"><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div></div>`;
+                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-teal-200 relative bg-teal-50/10"; const cleanDate = cleanDateOnly(item.date);
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold text-white bg-teal-600 px-1.5 py-0.5 rounded">面談記録</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div>
+                    <div class="text-xs text-gray-700 space-y-1.5">
+                        <div><strong class="text-gray-500">【対応者】</strong> ${escapeHtml(item.teacher || '未設定')}</div>
+                        <div class="pt-1.5 border-t border-teal-100 mt-1.5"><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 mt-2 border-t border-gray-100">
+                        <button onclick="readyEditInterview('${item.id}')" class="text-teal-600 font-bold bg-teal-50 hover:bg-teal-100 px-2 py-0.5 rounded text-[11px] transition">✏️ 編集</button>
+                        <button onclick="deleteInterview('${item.id}', '${escapeHtml(item.student)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded text-[11px] transition">🗑️ 削除</button>
+                    </div>
+                `;
                 iTimeline.appendChild(card);
             });
         }
 
+        function readyEditInterview(id) {
+            const item = cacheInterviews.find(i => i.id === id); if (!item) return;
+            document.getElementById('editInterviewId').value = item.id;
+            if (item.date) document.getElementById('interviewDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            document.getElementById('interviewTeacher').value = item.teacher;
+            document.getElementById('interviewContent').value = item.content || '';
+
+            document.getElementById('interviewFormTitle').innerText = "✏️ 保護者面談記録を修正中...";
+            document.getElementById('interviewSubmitBtn').innerText = "🔧 面談記録を上書き保存";
+            document.getElementById('interviewSubmitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function submitInterview(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
+            const editId = document.getElementById('editInterviewId').value;
             const date = document.getElementById('interviewDate').value; const teacher = document.getElementById('interviewTeacher').value; const content = document.getElementById('interviewContent').value;
-            const dummyId = (Date.now()).toString(); cacheInterviews.push({ id: dummyId, student: currentActiveStudent, date, teacher, content });
-            displayRoomInterviewTimeline(currentActiveStudent); document.getElementById('interviewContent').value = ''; alert("保護者面談記録を保存しました！");
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", date, student: currentActiveStudent, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; }); });
+            
+            if (editId) {
+                const index = cacheInterviews.findIndex(i => i.id === editId);
+                if (index !== -1) cacheInterviews[index] = { id: editId, student: currentActiveStudent, date, teacher, content };
+                displayRoomInterviewTimeline(currentActiveStudent); resetFormToNew('interview'); alert("面談記録を上書き保存しました！");
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", action: "edit", id: editId, date, student: currentActiveStudent, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; }); });
+            } else {
+                const dummyId = (Date.now()).toString(); cacheInterviews.push({ id: dummyId, student: currentActiveStudent, date, teacher, content });
+                displayRoomInterviewTimeline(currentActiveStudent); alert("保護者面談記録を保存しました！");
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", date, student: currentActiveStudent, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; displayRoomInterviewTimeline(currentActiveStudent); }); });
+            }
+            document.getElementById('interviewContent').value = '';
         }
 
         function deleteInterview(interviewId, studentName) {
@@ -568,32 +748,58 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", action: "delete", id: interviewId }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; }); });
         }
 
-        // --- 振替・補習システム（即時反映） ---
+        // --- 振替・補習システム（編集対応） ---
         function displayRoomScheduleTimeline(studentName) {
             const sTimeline = document.getElementById('scheduleTimeline'); const filteredData = cacheSchedules.filter(item => item.student === studentName); sTimeline.innerHTML = '';
             if (filteredData.length === 0) { sTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">登録済みの予定はありません。</div>'; return; }
             filteredData.sort((a, b) => new Date(a.date) - new Date(b.date)); 
             filteredData.forEach(item => {
-                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-sky-200 relative bg-sky-50/10"; 
-                const cleanDate = cleanDateOnly(item.date); // ノイズ完全シャットアウト
+                const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-sky-200 relative bg-sky-50/10"; const cleanDate = cleanDateOnly(item.date);
                 card.innerHTML = `
-                    <button onclick="deleteSchedule('${item.id}', '${escapeHtml(item.student)}')" class="absolute top-3 right-3 text-red-400 hover:text-red-600 text-xs font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded transition">🗑️ 削除</button>
                     <div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold text-white bg-sky-600 px-1.5 py-0.5 rounded">振替・補習予定</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div>
                     <div class="text-xs text-gray-700 space-y-1.5">
                         <div><strong class="text-gray-500">【教 科】</strong> ${escapeHtml(item.subject)}</div>
                         <div><strong class="text-gray-500">【担 当】</strong> ${escapeHtml(item.teacher || '未設定')}</div>
                         <div class="pt-1.5 border-t border-sky-100 mt-1.5"><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 mt-2 border-t border-gray-100">
+                        <button onclick="readyEditSchedule('${item.id}')" class="text-sky-600 font-bold bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded text-[11px] transition">✏️ 編集</button>
+                        <button onclick="deleteSchedule('${item.id}', '${escapeHtml(item.student)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded text-[11px] transition">🗑️ 削除</button>
                     </div>`;
                 sTimeline.appendChild(card);
             });
         }
 
+        function readyEditSchedule(id) {
+            const item = cacheSchedules.find(s => s.id === id); if (!item) return;
+            document.getElementById('editScheduleId').value = item.id;
+            if (item.date) document.getElementById('scheduleDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            document.getElementById('scheduleSubject').value = item.subject;
+            document.getElementById('scheduleTeacher').value = item.teacher;
+            document.getElementById('scheduleContent').value = item.content || '';
+
+            document.getElementById('scheduleFormTitle').innerText = "✏️ 振替・補習予定を修正中...";
+            document.getElementById('scheduleSubmitBtn').innerText = "🔧 予定を上書き保存";
+            document.getElementById('scheduleSubmitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function submitSchedule(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
+            const editId = document.getElementById('editScheduleId').value;
             const date = document.getElementById('scheduleDate').value; const subject = document.getElementById('scheduleSubject').value; const teacher = document.getElementById('scheduleTeacher').value; const content = document.getElementById('scheduleContent').value;
-            const dummyId = (Date.now()).toString(); cacheSchedules.push({ id: dummyId, student: currentActiveStudent, date, subject, teacher, content });
-            displayRoomScheduleTimeline(currentActiveStudent); document.getElementById('scheduleContent').value = ''; alert("振替・補習予定を登録しました！");
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "schedules", date, student: currentActiveStudent, subject, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(latest => { cacheSchedules = latest; }); });
+            
+            if (editId) {
+                const index = cacheSchedules.findIndex(s => s.id === editId);
+                if (index !== -1) cacheSchedules[index] = { id: editId, student: currentActiveStudent, date, subject, teacher, content };
+                displayRoomScheduleTimeline(currentActiveStudent); resetFormToNew('schedule'); alert("振替・補習予定を上書き保存しました！");
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "schedules", action: "edit", id: editId, date, student: currentActiveStudent, subject, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(latest => { cacheSchedules = latest; }); });
+            } else {
+                const dummyId = (Date.now()).toString(); cacheSchedules.push({ id: dummyId, student: currentActiveStudent, date, subject, teacher, content });
+                displayRoomScheduleTimeline(currentActiveStudent); alert("振替・補習予定を登録しました！");
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "schedules", date, student: currentActiveStudent, subject, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(latest => { cacheSchedules = latest; displayRoomScheduleTimeline(currentActiveStudent); }); });
+            }
+            document.getElementById('scheduleContent').value = '';
         }
 
         function deleteSchedule(id, studentName) {
