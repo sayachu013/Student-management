@@ -110,7 +110,7 @@
                         </div>
                         <div>
                             <label class="block text-[9px] font-bold text-gray-500 mb-0.5">内容（タスク）</label>
-                            <input type="text" id="newReminderInput" placeholder="例：テスト範囲回収" required class="w-full text-xs p-1.5 border border-gray-300 rounded">
+                            <input type="text" id="newReminderInput" placeholder="例：テスト範囲回収" required class="w-full text-xs p-1.5 border border-gray-300 rounded placeholder:text-gray-400">
                         </div>
                     </div>
                     <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-1.5 rounded transition">備忘録を更新</button>
@@ -140,15 +140,15 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-600 mb-1">④ 進度（本日の単元・内容）</label>
-                            <input type="text" id="reportProgress" placeholder="例：正負の数の加法・減法 P.12-14" required class="w-full p-2.5 border rounded-lg text-sm">
+                            <input type="text" id="reportProgress" placeholder="例：正負の数の加法・減法 P.12-14" required class="w-full p-2.5 border rounded-lg text-sm placeholder:text-gray-400">
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-600 mb-1">⑤ 宿題</label>
-                            <input type="text" id="reportHomework" placeholder="例：ワーク P.15の問1〜問4まで" required class="w-full p-2.5 border rounded-lg text-sm">
+                            <input type="text" id="reportHomework" placeholder="例：ワーク P.15の問1〜問4まで" required class="w-full p-2.5 border rounded-lg text-sm placeholder:text-gray-400">
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-600 mb-1">⑥ 補足（授業中の様子・理解度など）</label>
-                            <textarea id="reportContent" rows="3" placeholder="集中度や次回への引き継ぎ事項など" required class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+                            <textarea id="reportContent" rows="3" placeholder="集中度や次回への引き継ぎ事項など" required class="w-full p-2.5 border rounded-lg text-sm placeholder:text-gray-400"></textarea>
                         </div>
                         <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition text-sm">カルテを送信して保存</button>
                     </form>
@@ -178,7 +178,7 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-600 mb-1">③ 面談内容（ご家庭の要望・志望校など）</label>
-                            <textarea id="interviewContent" rows="5" placeholder="志望校の確認、家庭での学習状況など" required class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+                            <textarea id="interviewContent" rows="5" placeholder="志望校の確認、家庭での学習状況など" required class="w-full p-2.5 border rounded-lg text-sm placeholder:text-gray-400"></textarea>
                         </div>
                         <button type="submit" id="interviewSubmitBtn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition text-sm">面談記録を保存</button>
                     </form>
@@ -212,7 +212,7 @@
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-bold text-gray-600 mb-1">④ 振替理由・実施時間・メモなど</label>
-                            <textarea id="scheduleContent" rows="3" placeholder="例：6/2分の体調不良による振替。16:30〜18:00で実施予定。" required class="w-full p-2.5 border rounded-lg text-sm"></textarea>
+                            <textarea id="scheduleContent" rows="3" placeholder="例：6/2分の体調不良による振替。16:30〜18:00で実施予定。" required class="w-full p-2.5 border rounded-lg text-sm placeholder:text-gray-400"></textarea>
                         </div>
                         <button type="submit" id="scheduleSubmitBtn" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition text-sm">振替・補習予定を保存</button>
                     </form>
@@ -244,7 +244,7 @@
                 <form onsubmit="addStudent(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 overflow-y-auto max-h-[35vh] shrink-0 text-xs">
                     <div class="mb-2">
                         <label class="block font-bold text-gray-600 mb-0.5">生徒氏名</label>
-                        <input type="text" id="newStudentName" placeholder="例：鈴木 太郎" required class="w-full p-1.5 border rounded bg-white">
+                        <input type="text" id="newStudentName" placeholder="例：鈴木 太郎" required class="w-full p-1.5 border rounded bg-white placeholder:text-gray-400">
                     </div>
                     <div class="mb-2">
                         <label class="block font-bold text-gray-600 mb-0.5">学年・形態</label>
@@ -275,7 +275,7 @@
                     <div class="mb-2">
                         <label class="block font-bold text-gray-600 mb-0.5">講師氏名</label>
                         <div class="flex gap-2">
-                            <input type="text" id="newTeacherName" placeholder="例：渡邊 先生" required class="flex-1 p-1.5 border rounded bg-white">
+                            <input type="text" id="newTeacherName" placeholder="例：渡邊 先生" required class="flex-1 p-1.5 border rounded bg-white placeholder:text-gray-400">
                             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 rounded transition">登録</button>
                         </div>
                     </div>
@@ -513,17 +513,15 @@
             }
         }
 
-        // --- ★【バグ修正箇所】備忘録・リマインダ処理システム（お名前マッチング方式を完全撤廃し、厳密な個別ID追跡へ大改造） ---
         function displayRoomReminder(studentName) {
             const display = document.getElementById('reminderContentDisplay'); const deleteBtn = document.getElementById('clearReminderBtn');
-            // 名前の一致する「最新の有効なデータ1件のみ」を厳密に抽出
             const record = globalReminders.filter(item => item.student === studentName && item.content && item.content.trim() !== "").pop();
             
             if (record) {
                 const formattedDate = cleanDateOnly(record.date);
                 display.innerHTML = `⏰ 対応予定期限: <span class="underline font-bold">${escapeHtml(formattedDate)}</span><br><span class="text-sm font-bold text-amber-900 mt-1 block">⚠️ ${escapeHtml(record.content)}</span>`;
                 deleteBtn.classList.remove('hidden'); 
-                currentReminderRowId = record.id; // 正確な行番号IDをグローバル保持
+                currentReminderRowId = record.id;
             } else {
                 display.innerText = "登録なし"; deleteBtn.classList.add('hidden'); currentReminderRowId = null;
             }
@@ -535,18 +533,15 @@
             const content = input.value.trim(); const dateValue = dateInput.value;
             if (!content || !currentActiveStudent || !dateValue) return;
 
-            const oldIdToClear = currentReminderRowId; // 削除対象を確定
+            const oldIdToClear = currentReminderRowId;
             const localDummyId = (Date.now()).toString();
 
-            // 1. キャッシュを先行して上書き（古い同一生徒データを排他消去）
             globalReminders = globalReminders.filter(item => item.student !== currentActiveStudent);
             globalReminders.push({ id: localDummyId, student: currentActiveStudent, date: dateValue, content: content });
             
             displayRoomReminder(currentActiveStudent); 
             input.value = ''; dateInput.value = todayStr;
 
-            // 2. スプレッドシート側の通信処理（既存機能に全く影響を与えずに実行）
-            // 過去データ（oldIdToClear）が存在する場合は「生徒名」ではなく、狙い撃ちの「ID指定削除（action: delete）」を実行してから新規追加
             const clearPromise = oldIdToClear 
                 ? fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", action: "delete", id: oldIdToClear }) }) 
                 : Promise.resolve();
@@ -556,7 +551,6 @@
                     method: "POST", 
                     body: JSON.stringify({ resource: "reminders", student: currentActiveStudent, date: dateValue, content: content }) 
                 }).then(() => {
-                    // 最新シート情報を裏で再取得して完全同期（ゾンビ復活バグを完全根絶）
                     fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; displayRoomReminder(currentActiveStudent); });
                 });
             });
@@ -566,11 +560,9 @@
             if (!currentReminderRowId || !currentActiveStudent) return;
             const idToDelete = currentReminderRowId;
 
-            // キャッシュから先行消去
             globalReminders = globalReminders.filter(item => item.id !== idToDelete && item.student !== currentActiveStudent); 
             displayRoomReminder(currentActiveStudent);
 
-            // 確実に行番号IDを指定してピンポイント削除通信
             fetch(GAS_URL, { 
                 method: "POST", 
                 body: JSON.stringify({ resource: "reminders", action: "delete", id: idToDelete }) 
