@@ -84,6 +84,44 @@
                 <p id="roomStudentSubjects" class="text-xs text-indigo-100 mt-1">受講教科: --</p>
             </div>
 
+            <!-- ★【新機能】3大検定（英検・漢検・数検）の取得級管理エリア -->
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-700 mb-3 flex items-center gap-1 border-b pb-1.5">
+                    🎓 各種検定の取得級（選択して自動保存）
+                </h3>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                        <label class="block font-bold text-gray-500 mb-1">📘 英検</label>
+                        <select id="licenseEiken" onchange="saveStudentLicenses()" class="w-full p-2 border rounded-lg bg-gray-50 font-medium">
+                            <option value="未取得">未取得</option><option value="5級">5級</option><option value="4級">4級</option>
+                            <option value="3級">3級</option><option value="準2級">準2級</option><option value="2級">2級</option>
+                            <option value="準1級">準1級</option><option value="1級">1級</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-500 mb-1">📕 漢検</label>
+                        <select id="licenseKanken" onchange="saveStudentLicenses()" class="w-full p-2 border rounded-lg bg-gray-50 font-medium">
+                            <option value="未取得">未取得</option><option value="10級">10級</option><option value="9級">9級</option>
+                            <option value="8級">8級</option><option value="7級">7級</option><option value="6級">6級</option>
+                            <option value="5級">5級</option><option value="4級">4級</option><option value="3級">3級</option>
+                            <option value="準2級">準2級</option><option value="2級">2級</option><option value="準1級">準1級</option>
+                            <option value="1級">1級</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-500 mb-1">💚 数検</label>
+                        <select id="licenseSuken" onchange="saveStudentLicenses()" class="w-full p-2 border rounded-lg bg-gray-50 font-medium">
+                            <option value="未取得">未取得</option><option value="11級">11級</option><option value="10級">10級</option>
+                            <option value="9級">9級</option><option value="8級">8級</option><option value="7級">7級</option>
+                            <option value="6級">6級</option><option value="5級">5級</option><option value="4級">4級</option>
+                            <option value="3級">3級</option><option value="準2級">準2級</option><option value="2級">2級</option>
+                            <option value="準1級">準1級</option><option value="1級">1級</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="licenseSaveStatus" class="text-[10px] text-green-600 font-bold mt-2 text-right h-3"></div>
+            </div>
+
             <!-- タブ切り替え（指導カルテ ⇔ 保護者面談 ⇔ 振替・補習） -->
             <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold shadow-2xs gap-0.5">
                 <button id="tabReportModeBtn" onclick="switchRoomTab('report')" class="flex-1 py-2 text-center bg-white text-indigo-700 rounded-md shadow-2xs">📋 指導カルテ</button>
@@ -251,9 +289,7 @@
                         <select id="newStudentGrade" required class="w-full p-1.5 border rounded bg-white">
                             <option value="高校生">高校生</option><option value="中3集団">中3集団</option><option value="中3個別">中3個別</option>
                             <option value="中2集団">中2集団</option><option value="中2個別">中2個別</option><option value="中1集団">中1集団</option>
-                            <option value="中1個別">中1個別</option><option value="小学生">小学生</option>
-                            <!-- ★【新設】マスター登録側に「外部生」を追加 -->
-                            <option value="外部生">外部生</option>
+                            <option value="中1個別">中1個別</option><option value="小学生">小学生</option><option value="外部生">外部生</option>
                         </select>
                     </div>
                     <div class="mb-2">
@@ -291,7 +327,6 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwBowSWnS7rKK5YF_THnVpzP_ufC0NQIqObyqyi0Y4V9eLccHfxYmIqlL2b3-ziVV2n5A/exec";
 
-        // ★【新設】アコーディオンのグループ定義の最後に「外部生」を投入
         const GROUP_NAMES = ["高校生", "中3集団", "中3個別", "中2集団", "中2個別", "中1集団", "中1個別", "小学生", "外部生"];
         let accordionStates = {};
         GROUP_NAMES.forEach(g => { accordionStates[g] = false; });
@@ -304,6 +339,7 @@
         let cacheReports = [];
         let cacheInterviews = [];
         let cacheSchedules = []; 
+        let cacheLicenses = []; // 新機能：検定データのキャッシュ
         let currentActiveStudent = null; 
         let currentReminderRowId = null; 
         let isAppLoaded = false; // 二重解除防止フラグ
@@ -314,7 +350,7 @@
         document.getElementById('scheduleDate').value = todayStr;
         document.getElementById('reminderDateInput').value = todayStr;
         
-        // セーフティ機能：5秒経っても通信が終わらない場合は強制的に画面を開く
+        // 🔒 セーフティ機能：5秒経っても通信が終わらない場合は強制的に画面を開く
         setTimeout(() => {
             if (!isAppLoaded) {
                 console.warn("データ同期がタイムアウトしたため、ローディングを強制解除しました。");
@@ -341,19 +377,20 @@
             }
         }
 
-        // 各通信が失敗（catch）しても、空配列を入れて必ず全体の処理を進める仕組み
+        // 初期データ同期ロードにlicensesを追加
         Promise.all([
             fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; }).catch(() => { globalStudents = []; }),
             fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; }).catch(() => { globalTeachers = []; }),
             fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(data => { globalReminders = data; }).catch(() => { globalReminders = []; }),
             fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(data => { cacheReports = data; }).catch(() => { cacheReports = []; }),
             fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(data => { cacheInterviews = data; }).catch(() => { cacheInterviews = []; }),
-            fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(data => { cacheSchedules = data; }).catch(() => { cacheSchedules = []; })
+            fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(data => { cacheSchedules = data; }).catch(() => { cacheSchedules = []; }),
+            fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(data => { cacheLicenses = data; }).catch(() => { cacheLicenses = []; })
         ]).then(() => {
             closeLoader();
         }).catch((err) => {
             console.error("データ同期中に致命的な例外が発生しました:", err);
-            closeLoader();
+            closeLoader(); 
         });
 
         function fetchStudents() {
@@ -494,6 +531,7 @@
             displayRoomTimeline(studentName);
             displayRoomInterviewTimeline(studentName);
             displayRoomScheduleTimeline(studentName);
+            displayRoomLicenses(studentName); // 検定データの読み込み表示
         }
 
         function backToListView() {
@@ -538,6 +576,62 @@
                 document.getElementById('scheduleSubmitBtn').innerText = "振替・補習予定を保存";
                 document.getElementById('scheduleSubmitBtn').className = "w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition text-sm";
             }
+        }
+
+        // --- ★【新機能】検定データ表示 ＆ 保存システム ---
+        function displayRoomLicenses(studentName) {
+            // キャッシュから現在の生徒のデータを検索
+            const record = cacheLicenses.find(item => item.student === studentName);
+            
+            // ドロップダウンの要素を取得
+            const eikenSel = document.getElementById('licenseEiken');
+            const kankenSel = document.getElementById('licenseKanken');
+            const sukenSel = document.getElementById('licenseSuken');
+            document.getElementById('licenseSaveStatus').innerText = "";
+
+            if (record) {
+                eikenSel.value = record.eiken || "未取得";
+                kankenSel.value = record.kanken || "未取得";
+                sukenSel.value = record.suken || "未取得";
+            } else {
+                eikenSel.value = "未取得";
+                kankenSel.value = "未取得";
+                sukenSel.value = "未取得";
+            }
+        }
+
+        function saveStudentLicenses() {
+            if (!currentActiveStudent) return;
+            
+            const eiken = document.getElementById('licenseEiken').value;
+            const kanken = document.getElementById('licenseKanken').value;
+            const suken = document.getElementById('licenseSuken').value;
+            const statusDiv = document.getElementById('licenseSaveStatus');
+
+            statusDiv.innerText = "⏳ 保存中...";
+            statusDiv.className = "text-[10px] text-amber-600 font-bold mt-2 text-right h-3";
+
+            // 1. キャッシュを先行して上書き（古いデータがあれば削除して入れ替え）
+            cacheLicenses = cacheLicenses.filter(item => item.student !== currentActiveStudent);
+            cacheLicenses.push({ id: (Date.now()).toString(), student: currentActiveStudent, eiken, kanken, suken });
+
+            // 2. スプレッドシート側の既存行を一旦削除するためのリクエスト（排他処理）
+            // スプレッドシートの重複防止のため、licensesシート上の古い該当生徒行を削除して再登録
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ resource: "licenses", action: "delete", name: currentActiveStudent })
+            }).then(() => {
+                // 3. 新しい検定データを送信して保存
+                fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ resource: "licenses", student: currentActiveStudent, eiken, kanken, suken })
+                }).then(() => {
+                    statusDiv.innerText = "✓ 自動保存されました";
+                    statusDiv.className = "text-[10px] text-green-600 font-bold mt-2 text-right h-3";
+                    // 最新データを再同期
+                    fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(latest => { cacheLicenses = latest; });
+                }).catch(() => { statusDiv.innerText = "✕ 保存に失敗しました"; statusDiv.className = "text-red-500"; });
+            });
         }
 
         function displayRoomReminder(studentName) {
@@ -611,7 +705,7 @@
                 headerBar.onclick = () => { reportAccordionStates[item.id] = !reportAccordionStates[item.id]; displayRoomTimeline(studentName); };
                 cardWrapper.appendChild(headerBar);
                 const contentBody = document.createElement('div'); contentBody.className = `p-3 text-xs space-y-2 border-t border-dashed border-gray-100 ${isItemOpen ? '' : 'hidden'}`;
-                contentBody.innerHTML = `<div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div><div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div><div class="pt-1.5 border-t border-gray-100 mt-1"><strong class="text-gray-500 block mb-0.5">【補 足】</strong><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div><div class="flex justify-end gap-2 pt-2 border-t border-gray-50"><button onclick="readyEditReport('${item.id}')" class="text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteReport('${item.id}', '${escapeHtml(item.student)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-[11px] transition">🗑️ 削除</button></div>`;
+                contentBody.innerHTML = `<div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div><div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div><div class="pt-1.5 border-t border-gray-100 mt-1"><strong class="text-gray-500 block mb-0.5">【補 足】</strong><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div><div class="flex justify-end gap-2 pt-2 border-t border-gray-50"><button onclick="readyEditReport('${item.id}')" class="text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteReport('${item.id}', '${escapeHtml(studentName)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-[11px] transition">🗑️ 削除</button></div>`;
                 cardWrapper.appendChild(contentBody); timeline.appendChild(cardWrapper);
             });
         }
@@ -648,7 +742,7 @@
 
         // --- 面談記録システム ---
         function displayRoomInterviewTimeline(studentName) {
-            const iTimeline = document.getElementById('interviewTimeline'); if(!iTimeline) return; const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
+            const iTimeline = document.getElementById('interviewTimeline'); const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
             if (filteredData.length === 0) { iTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">過去の面談記録はありません。</div>'; return; }
             filteredData.sort((a, b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
                 const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-teal-200 relative bg-teal-50/10"; const cleanDate = cleanDateOnly(item.date);
@@ -694,7 +788,7 @@
             filteredData.sort((a, b) => new Date(a.date) - new Date(b.date)); 
             filteredData.forEach(item => {
                 const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-sky-200 relative bg-sky-50/10"; const cleanDate = cleanDateOnly(item.date);
-                card.innerHTML = `<div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold text-white bg-sky-600 px-1.5 py-0.5 rounded">振替・補習予定</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div><div class="text-xs text-gray-700 space-y-1.5"><div><strong class="text-gray-500">【教 科】</strong> ${escapeHtml(item.subject)}</div><div><strong class="text-gray-500">【担 当】</strong> ${escapeHtml(item.teacher || '未設定')}</div><div class="pt-1.5 border-t border-sky-100 mt-1.5"><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div></div><div class="flex justify-end gap-2 pt-2 mt-2 border-t border-gray-100"><button onclick="readyEditSchedule('${item.id}')" class="text-sky-600 font-bold bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteSchedule('${item.id}', '${escapeHtml(item.student)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded text-[11px] transition">🗑️ 削除</button></div>`;
+                card.innerHTML = `<div class="flex items-center gap-2 mb-2"><span class="text-[10px] font-bold text-white bg-sky-600 px-1.5 py-0.5 rounded">振替・補習予定</span><span class="text-xs text-gray-400 font-medium">📅 ${escapeHtml(cleanDate)}</span></div><div class="text-xs text-gray-700 space-y-1.5"><div><strong class="text-gray-500">【教 科】</strong> ${escapeHtml(item.subject)}</div><div><strong class="text-gray-500">【担 当】</strong> ${escapeHtml(item.teacher || '未設定')}</div><div class="pt-1.5 border-t border-sky-100 mt-1.5"><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div></div><div class="flex justify-end gap-2 pt-2 mt-2 border-t border-gray-100"><button onclick="readyEditSchedule('${item.id}')" class="text-sky-600 font-bold bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteSchedule('${item.id}', '${escapeHtml(studentName)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded text-[11px] transition">🗑️ 削除</button></div>`;
                 sTimeline.appendChild(card);
             });
         }
@@ -753,14 +847,14 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "teachers", action: "delete", name: name }) }).then(() => fetchTeachers());
         }
         function renderAdminStudentList() {
-            const list = document.getElementById('adminStudentList'); if(!list) return; list.innerHTML = '';
+            const list = document.getElementById('adminStudentList'); list.innerHTML = '';
             globalStudents.forEach(st => {
                 const div = document.createElement('div'); div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                 div.innerHTML = `<div><strong>${escapeHtml(st.name)}</strong> (${escapeHtml(st.grade)})</div><button onclick="deleteStudent('${st.id}', '${escapeHtml(st.name)}')" class="text-red-500 font-bold px-1">削除</button>`; list.appendChild(div);
             });
         }
         function renderAdminTeacherList() {
-            const list = document.getElementById('adminTeacherList'); if(!list) return; list.innerHTML = ''; if (globalTeachers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">登録された講師はいません。</div>'; return; }
+            const list = document.getElementById('adminTeacherList'); list.innerHTML = ''; if (globalTeachers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">登録された講師はいません。</div>'; return; }
             globalTeachers.forEach(t => {
                 const div = document.createElement('div'); div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                 div.innerHTML = `<div><strong>${escapeHtml(t.name)}</strong></div><button onclick="deleteTeacher('${t.id}', '${escapeHtml(t.name)}')" class="text-red-500 font-bold px-1">削除</button>`; list.appendChild(div);
