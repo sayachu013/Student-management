@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>塾専用・個別指導総合カルテシステム</title>
-    <!-- スマホ用におしゃれに整えるためのCSS（Tailwind CSS） -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -19,13 +18,11 @@
 </head>
 <body class="bg-gray-100 min-h-screen pb-12">
 
-    <!-- アプリ起動時の全画面ローディング（Loading画面） -->
     <div id="appInitLoader" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-300">
         <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin-custom mb-4"></div>
         <p class="text-sm font-bold text-gray-500 tracking-wider">塾のデータを安全に読み込み中...</p>
     </div>
 
-    <!-- ヘッダー -->
     <header class="bg-indigo-600 text-white flex justify-between items-center px-4 py-4 shadow-md sticky top-0 z-50">
         <span id="headerTitle" class="font-bold text-base">塾専用・個別指導総合カルテ</span>
         <button id="adminBtn" onclick="toggleAdminModal()" class="bg-indigo-700 hover:bg-indigo-800 text-xs font-bold py-1.5 px-3 rounded-lg transition active:scale-95">
@@ -35,10 +32,8 @@
 
     <main class="max-w-md mx-auto px-4 mt-6">
         
-        <!-- 【画面A】トップ画面（全体リマインダ ＆ 全体振替・補習 ＆ 形態別開閉メニュー） -->
         <div id="listViewArea" class="space-y-6">
             
-            <!-- 塾全体のリマインダダッシュボード -->
             <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 shadow-xs">
                 <h3 class="text-xs font-bold text-amber-800 flex items-center gap-1 border-b border-amber-200 pb-2 mb-3">
                     📌 塾全体のリマインダ・備忘録一覧（期限順）
@@ -48,7 +43,6 @@
                 </div>
             </div>
 
-            <!-- 塾全体の振替・補習予定ダッシュボード -->
             <div class="bg-sky-50 border-2 border-sky-300 rounded-xl p-4 shadow-xs">
                 <h3 class="text-xs font-bold text-sky-800 flex items-center gap-1 border-b border-sky-200 pb-2 mb-3">
                     🔁 塾全体の振替・補習予定一覧（日付順）
@@ -58,7 +52,6 @@
                 </div>
             </div>
 
-            <!-- 生徒メニュー（形態別開閉式アコーディオン） -->
             <div>
                 <p class="text-sm font-bold text-gray-700 mb-3 px-1">学年・形態を選択してください：</p>
                 <div id="accordionContainer" class="space-y-2">
@@ -67,15 +60,12 @@
             </div>
         </div>
 
-        <!-- 【画面B】選択された生徒固有の「専用部屋」画面 -->
         <div id="roomViewArea" class="hidden space-y-5">
             
-            <!-- 一覧に戻るボタン -->
             <button onclick="backToListView()" class="flex items-center gap-1 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition active:scale-95 border border-indigo-100">
                 ⬅ 生徒一覧に戻る
             </button>
 
-            <!-- 生徒プロフィールカード -->
             <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-5 rounded-xl shadow-md">
                 <div class="flex items-baseline gap-2 mb-2">
                     <h2 id="roomStudentName" class="text-2xl font-bold">--</h2>
@@ -84,7 +74,6 @@
                 <p id="roomStudentSubjects" class="text-xs text-indigo-100 mt-1">受講教科: --</p>
             </div>
 
-            <!-- ★【新機能】3大検定（英検・漢検・数検）の取得級管理エリア -->
             <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
                 <h3 class="text-xs font-bold text-gray-700 mb-3 flex items-center gap-1 border-b pb-1.5">
                     🎓 各種検定の取得級（選択して自動保存）
@@ -122,14 +111,85 @@
                 <div id="licenseSaveStatus" class="text-[10px] text-green-600 font-bold mt-2 text-right h-3"></div>
             </div>
 
-            <!-- タブ切り替え（指導カルテ ⇔ 保護者面談 ⇔ 振替・補習） -->
+            <div class="bg-gray-800 text-white p-4 rounded-xl shadow-md border border-gray-700">
+                <div id="scoreAuthGate">
+                    <h3 class="text-xs font-bold mb-2 flex items-center gap-1">🔒 成績・内申データ管理（要認証）</h3>
+                    <div class="flex gap-2">
+                        <input type="password" id="scorePassInput" placeholder="パスワードを入力" class="w-full text-xs p-2 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none placeholder:text-gray-400">
+                        <button onclick="unlockScoreSection()" class="bg-indigo-600 hover:bg-indigo-700 text-xs font-bold px-3 py-2 rounded transition shrink-0">認証</button>
+                    </div>
+                    <p id="scoreAuthError" class="text-[10px] text-red-400 font-bold mt-1 h-3"></p>
+                </div>
+
+                <div id="scoreMainContent" class="hidden space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-700 pb-1.5">
+                        <span class="text-xs font-bold text-indigo-400">🔓 認証成功（閲覧中）</span>
+                        <button onclick="lockScoreSection()" class="text-[10px] bg-gray-700 hover:bg-gray-600 px-2 py-0.5 rounded transition">施錠する</button>
+                    </div>
+
+                    <div class="flex bg-gray-700 p-0.5 rounded-lg text-[10px] font-bold">
+                        <button id="btnSubTabExam" onclick="switchScoreSubTab('exam')" class="flex-1 py-1.5 text-center bg-gray-600 text-white rounded">📊 定期テスト得点</button>
+                        <button id="btnSubTabReport" onclick="switchScoreSubTab('report')" class="flex-1 py-1.5 text-center text-gray-400 rounded">📋 通知表内申(9科)</button>
+                    </div>
+
+                    <div id="subSectionExam" class="space-y-3">
+                        <form onsubmit="submitExamScore(event)" class="space-y-2 text-xs">
+                            <div>
+                                <label class="block text-[10px] text-gray-400 mb-0.5">対象テスト選択</label>
+                                <select id="examTerm" required class="w-full p-1.5 rounded bg-gray-700 border border-gray-600 text-white">
+                                    <option value="1学期中間">1学期中間</option><option value="1学期期末">1学期期末</option>
+                                    <option value="2学期中間">2学期中間</option><option value="2学期期末">2学期期末</option>
+                                    <option value="3学期期末">3学期期末</option><option value="学年末テスト">学年末テスト</option>
+                                    <option value="その他模試・テスト">その他模試・テスト</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-5 gap-1 text-center">
+                                <div><label class="block text-[10px] text-gray-400">国語</label><input type="number" id="scoreJap" min="0" max="100" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[10px] text-gray-400">社会</label><input type="number" id="scoreSoc" min="0" max="100" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[10px] text-gray-400">数学</label><input type="number" id="scoreMat" min="0" max="100" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[10px] text-gray-400">理科</label><input type="number" id="scoreSci" min="0" max="100" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[10px] text-gray-400">英語</label><input type="number" id="scoreEng" min="0" max="100" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 rounded transition text-[11px]">定期テスト点数を記録</button>
+                        </form>
+                        <div id="examScoreTimeline" class="space-y-1.5 max-h-48 overflow-y-auto pr-1 text-[11px]"></div>
+                    </div>
+
+                    <div id="subSectionReport" class="space-y-3 hidden">
+                        <form onsubmit="submitReportCard(event)" class="space-y-2 text-xs">
+                            <div>
+                                <label class="block text-[10px] text-gray-400 mb-0.5">対象時期選択</label>
+                                <select id="reportTerm" required class="w-full p-1.5 rounded bg-gray-700 border border-gray-600 text-white">
+                                    <option value="1学期通知表">1学期通知表</option><option value="2学期通知表">2学期通知表</option>
+                                    <option value="3学期通知表">3学期通知表</option><option value="学年評定(学年末)">学年評定(学年末)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-5 gap-1 text-center">
+                                <div><label class="block text-[9px] text-gray-400">国</label><input type="number" id="naishinJap" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">社</label><input type="number" id="naishinSoc" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">数</label><input type="number" id="naishinMat" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">理</label><input type="number" id="naishinSci" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">英</label><input type="number" id="naishinEng" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 text-center text-gray-300 border-t border-gray-600/30 pt-1.5">
+                                <div><label class="block text-[9px] text-gray-400">音</label><input type="number" id="naishinMus" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">美</label><input type="number" id="naishinArt" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">保体</label><input type="number" id="naishinPek" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                                <div><label class="block text-[9px] text-gray-400">技家</label><input type="number" id="naishinTec" min="1" max="5" required class="w-full p-1 rounded bg-gray-700 border border-gray-600 text-center"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 rounded transition text-[11px]">通知表評定を記録</button>
+                        </form>
+                        <div id="reportCardTimeline" class="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-[11px]"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold shadow-2xs gap-0.5">
                 <button id="tabReportModeBtn" onclick="switchRoomTab('report')" class="flex-1 py-2 text-center bg-white text-indigo-700 rounded-md shadow-2xs">📋 指導カルテ</button>
                 <button id="tabInterviewModeBtn" onclick="switchRoomTab('interview')" class="flex-1 py-2 text-center text-gray-600 rounded-md">💬 面談記録</button>
                 <button id="tabScheduleModeBtn" onclick="switchRoomTab('schedule')" class="flex-1 py-2 text-center text-gray-600 rounded-md">🔁 振替・補習</button>
             </div>
 
-            <!-- 生徒個人の部屋内リマインダエリア -->
             <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 shadow-xs">
                 <div class="flex justify-between items-center border-b border-amber-200 pb-2 mb-2">
                     <h3 class="text-xs font-bold text-amber-800 flex items-center gap-1">📌 この生徒の重要リマインダ・備忘録</h3>
@@ -155,7 +215,6 @@
                 </form>
             </div>
 
-            <!-- 【部屋内タブA】指導日報・カルテエリア -->
             <div id="roomReportSection" class="space-y-5">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
                     <h3 id="reportFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">📋 新しい指導カルテを記入</h3>
@@ -197,7 +256,6 @@
                 </div>
             </div>
 
-            <!-- 【部屋内タブB】保護者面談記録エリア -->
             <div id="roomInterviewSection" class="space-y-5 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
                     <h3 id="interviewFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">💬 新しい保護者面談記録を記入</h3>
@@ -227,7 +285,6 @@
                 </div>
             </div>
 
-            <!-- 【部屋内タブC】振替・補習記録エリア -->
             <div id="roomScheduleSection" class="space-y-5 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-200">
                     <h3 id="scheduleFormTitle" class="text-sm font-bold text-gray-800 mb-4 border-b pb-2">🔁 新しい振替・補習予定を登録</h3>
@@ -264,7 +321,6 @@
         </div>
     </main>
 
-    <!-- 🛠️ 塾管理ポップアップ -->
     <div id="adminModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -277,7 +333,6 @@
                 <button id="tabTeacherBtn" onclick="switchAdminTab('teacher')" class="flex-1 py-2 text-center text-gray-500 border-b-2 border-transparent">講師の管理</button>
             </div>
 
-            <!-- 生徒管理 -->
             <div id="adminStudentArea" class="flex flex-col flex-1 overflow-hidden">
                 <form onsubmit="addStudent(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 overflow-y-auto max-h-[35vh] shrink-0 text-xs">
                     <div class="mb-2">
@@ -307,7 +362,6 @@
                 <div id="adminStudentList" class="overflow-y-auto flex-1 space-y-2 border-t pt-2 text-xs"></div>
             </div>
 
-            <!-- 講師管理 -->
             <div id="adminTeacherArea" class="flex flex-col flex-1 overflow-hidden hidden">
                 <form onsubmit="addTeacher(event)" class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 shrink-0 text-xs">
                     <div class="mb-2">
@@ -323,7 +377,6 @@
         </div>
     </div>
 
-    <!-- 🧠 システムコントロールJavaScript -->
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwBowSWnS7rKK5YF_THnVpzP_ufC0NQIqObyqyi0Y4V9eLccHfxYmIqlL2b3-ziVV2n5A/exec";
 
@@ -332,6 +385,8 @@
         GROUP_NAMES.forEach(g => { accordionStates[g] = false; });
 
         let reportAccordionStates = {};
+        let examAccordionStates = {}; 
+        let reportCardAccordionStates = {}; 
 
         let globalStudents = []; 
         let globalTeachers = [];
@@ -339,10 +394,12 @@
         let cacheReports = [];
         let cacheInterviews = [];
         let cacheSchedules = []; 
-        let cacheLicenses = []; // 新機能：検定データのキャッシュ
+        let cacheLicenses = []; 
+        let cacheExamScores = []; 
+        let cacheReportCards = []; 
         let currentActiveStudent = null; 
         let currentReminderRowId = null; 
-        let isAppLoaded = false; // 二重解除防止フラグ
+        let isAppLoaded = false; 
 
         const todayStr = new Date().toISOString().substring(0, 10);
         document.getElementById('reportDate').value = todayStr;
@@ -350,34 +407,10 @@
         document.getElementById('scheduleDate').value = todayStr;
         document.getElementById('reminderDateInput').value = todayStr;
         
-        // 🔒 セーフティ機能：5秒経っても通信が終わらない場合は強制的に画面を開く
-        setTimeout(() => {
-            if (!isAppLoaded) {
-                console.warn("データ同期がタイムアウトしたため、ローディングを強制解除しました。");
-                closeLoader();
-            }
-        }, 5000);
+        // 🔒 成績セクション認証キー（sayama13）
+        const SECRET_SCORE_PASSWORD = "sayama13";
 
-        function closeLoader() {
-            if (isAppLoaded) return;
-            isAppLoaded = true;
-            
-            // UIのリフレッシュ
-            renderAccordionStudentMenu();
-            renderAdminStudentList();
-            updateTeacherDropdowns();
-            renderAdminTeacherList();
-            displayGlobalReminders();
-            displayGlobalSchedules();
-
-            const loader = document.getElementById('appInitLoader');
-            if (loader) {
-                loader.classList.add('opacity-0');
-                setTimeout(() => loader.remove(), 300);
-            }
-        }
-
-        // 初期データ同期ロードにlicensesを追加
+        // 初期データ同期ロード
         Promise.all([
             fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; }).catch(() => { globalStudents = []; }),
             fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; }).catch(() => { globalTeachers = []; }),
@@ -385,100 +418,60 @@
             fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(data => { cacheReports = data; }).catch(() => { cacheReports = []; }),
             fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(data => { cacheInterviews = data; }).catch(() => { cacheInterviews = []; }),
             fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(data => { cacheSchedules = data; }).catch(() => { cacheSchedules = []; }),
-            fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(data => { cacheLicenses = data; }).catch(() => { cacheLicenses = []; })
+            fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(data => { cacheLicenses = data; }).catch(() => { cacheLicenses = []; }),
+            fetch(`${GAS_URL}?resource=exam_scores`).then(res => res.json()).then(data => { cacheExamScores = data; }).catch(() => { cacheExamScores = []; }),
+            fetch(`${GAS_URL}?resource=report_cards`).then(res => res.json()).then(data => { cacheReportCards = data; }).catch(() => { cacheReportCards = []; })
         ]).then(() => {
             closeLoader();
         }).catch((err) => {
-            console.error("データ同期中に致命的な例外が発生しました:", err);
+            console.error("データ同期中に例外が発生しました:", err);
             closeLoader(); 
         });
 
-        function fetchStudents() {
-            fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => {
-                globalStudents = data; renderAccordionStudentMenu(); renderAdminStudentList();
-            }).catch(() => {});
-        }
-        function fetchTeachers() {
-            fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => {
-                globalTeachers = data; updateTeacherDropdowns(); renderAdminTeacherList();
-            }).catch(() => {});
+        function closeLoader() {
+            if (isAppLoaded) return; isAppLoaded = true;
+            renderAccordionStudentMenu(); renderAdminStudentList(); updateTeacherDropdowns(); renderAdminTeacherList(); displayGlobalReminders(); displayGlobalSchedules();
+            const loader = document.getElementById('appInitLoader'); if (loader) { loader.classList.add('opacity-0'); setTimeout(() => loader.remove(), 300); }
         }
 
-        function cleanDateOnly(dateStr) {
-            if (!dateStr) return '未定';
-            let base = String(dateStr).substring(0, 10);
-            return base.replace(/-/g, '/');
-        }
+        function fetchStudents() { fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; renderAccordionStudentMenu(); renderAdminStudentList(); }).catch(() => {}); }
+        function fetchTeachers() { fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; updateTeacherDropdowns(); renderAdminTeacherList(); }).catch(() => {}); }
+        function cleanDateOnly(dateStr) { if (!dateStr) return '未定'; let base = String(dateStr).substring(0, 10); return base.replace(/-/g, '/'); }
 
         function displayGlobalReminders() {
-            const listContainer = document.getElementById('globalReminderList');
-            if (!listContainer) return;
-            const activeReminders = globalReminders.filter(item => item.content && item.content.trim() !== "");
-            listContainer.innerHTML = '';
-            if (activeReminders.length === 0) {
-                listContainer.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">アクティブなリマインダはありません。</div>'; return;
-            }
+            const listContainer = document.getElementById('globalReminderList'); if (!listContainer) return;
+            const activeReminders = globalReminders.filter(item => item.content && item.content.trim() !== ""); listContainer.innerHTML = '';
+            if (activeReminders.length === 0) { listContainer.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">アクティブなリマインダはありません。</div>'; return; }
             activeReminders.sort((a, b) => new Date(a.date) - new Date(b.date));
             activeReminders.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-2.5 rounded-lg border border-amber-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition";
-                const formattedDate = cleanDateOnly(item.date);
+                const div = document.createElement('div'); div.className = "bg-white p-2.5 rounded-lg border border-amber-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition"; const formattedDate = cleanDateOnly(item.date);
                 div.innerHTML = `<div class="flex-1 min-w-0 pr-2"><span class="font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mr-1.5 shrink-0">${escapeHtml(item.student)}</span><span class="text-gray-700 font-medium whitespace-pre-wrap breakdown-all">${escapeHtml(item.content)}</span></div><div class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded shrink-0">📅 ${escapeHtml(formattedDate)}</div>`;
-                div.onclick = () => enterStudentRoom(item.student);
-                listContainer.appendChild(div);
+                div.onclick = () => enterStudentRoom(item.student); listContainer.appendChild(div);
             });
         }
 
         function displayGlobalSchedules() {
-            const listContainer = document.getElementById('globalScheduleList');
-            if (!listContainer) return;
-            listContainer.innerHTML = '';
-            if (cacheSchedules.length === 0) {
-                listContainer.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">現在、登録されている振替・補習予定はありません。</div>'; return;
-            }
+            const listContainer = document.getElementById('globalScheduleList'); if (!listContainer) return; listContainer.innerHTML = '';
+            if (cacheSchedules.length === 0) { listContainer.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">現在、登録されている振替・補習予定はありません。</div>'; return; }
             cacheSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
             cacheSchedules.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-2.5 rounded-lg border border-sky-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition";
-                const formattedDate = cleanDateOnly(item.date);
-                div.innerHTML = `
-                    <div class="flex-1 min-w-0 pr-2">
-                        <span class="font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded mr-1.5 shrink-0">${escapeHtml(item.student)}</span>
-                        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-1 py-0.5 rounded mr-1">${escapeHtml(item.subject)}</span>
-                        <span class="text-gray-700 font-medium whitespace-pre-wrap breakdown-all">${escapeHtml(item.content)}</span>
-                    </div>
-                    <div class="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded shrink-0">📅 ${escapeHtml(formattedDate)}</div>
-                `;
-                div.onclick = () => { enterStudentRoom(item.student); switchRoomTab('schedule'); };
-                listContainer.appendChild(div);
+                const div = document.createElement('div'); div.className = "bg-white p-2.5 rounded-lg border border-sky-200 text-xs flex justify-between items-center shadow-2xs cursor-pointer hover:border-indigo-400 transition"; const formattedDate = cleanDateOnly(item.date);
+                div.innerHTML = `<div class="flex-1 min-w-0 pr-2"><span class="font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded mr-1.5 shrink-0">${escapeHtml(item.student)}</span><span class="text-xs font-bold text-gray-500 bg-gray-100 px-1 py-0.5 rounded mr-1">${escapeHtml(item.subject)}</span><span class="text-gray-700 font-medium whitespace-pre-wrap breakdown-all">${escapeHtml(item.content)}</span></div><div class="text-[10px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded shrink-0">📅 ${escapeHtml(formattedDate)}</div>`;
+                div.onclick = () => { enterStudentRoom(item.student); switchRoomTab('schedule'); }; listContainer.appendChild(div);
             });
         }
 
         function renderAccordionStudentMenu() {
             const container = document.getElementById('accordionContainer'); if (!container) return; container.innerHTML = '';
             GROUP_NAMES.forEach(groupName => {
-                const studentsInGroup = globalStudents.filter(st => st.grade === groupName);
-                const groupWrapper = document.createElement('div');
-                groupWrapper.className = "bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden";
-                const header = document.createElement('button');
-                header.className = "w-full flex justify-between items-center px-4 py-3.5 bg-gray-50 hover:bg-gray-100 text-sm font-bold text-gray-700 transition-colors";
-                const isOpen = accordionStates[groupName];
+                const studentsInGroup = globalStudents.filter(st => st.grade === groupName); const groupWrapper = document.createElement('div'); groupWrapper.className = "bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden"; const header = document.createElement('button'); header.className = "w-full flex justify-between items-center px-4 py-3.5 bg-gray-50 hover:bg-gray-100 text-sm font-bold text-gray-700 transition-colors"; const isOpen = accordionStates[groupName];
                 header.innerHTML = `<div class="flex items-center gap-2"><span class="text-xs text-gray-400">${isOpen ? '▼' : '▶'}</span><span>${groupName}</span><span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium">${studentsInGroup.length}人</span></div>`;
-                header.onclick = () => { accordionStates[groupName] = !accordionStates[groupName]; renderAccordionStudentMenu(); };
-                groupWrapper.appendChild(header);
-
-                const body = document.createElement('div');
-                body.className = `p-3 space-y-2 border-t border-gray-100 ${isOpen ? '' : 'hidden'}`;
-                if (studentsInGroup.length === 0) {
-                    body.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">登録生徒はいません</div>';
-                } else {
+                header.onclick = () => { accordionStates[groupName] = !accordionStates[groupName]; renderAccordionStudentMenu(); }; groupWrapper.appendChild(header);
+                const body = document.createElement('div'); body.className = `p-3 space-y-2 border-t border-gray-100 ${isOpen ? '' : 'hidden'}`;
+                if (studentsInGroup.length === 0) { body.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">登録生徒はいません</div>'; } else {
                     studentsInGroup.forEach(st => {
-                        const subs = Array.isArray(st.subjects) ? st.subjects.join(', ') : (st.subjects || 'なし');
-                        const card = document.createElement('div');
-                        card.className = "p-3 rounded-lg border border-gray-100 hover:border-indigo-300 bg-gray-50/50 cursor-pointer flex justify-between items-center transition group";
-                        card.onclick = () => enterStudentRoom(st.name);
-                        card.innerHTML = `<div><div class="font-bold text-gray-800 text-sm group-hover:text-indigo-600">${escapeHtml(st.name)}</div><div class="text-[11px] text-gray-400 mt-0.5">教科: ${escapeHtml(subs)}</div></div><span class="text-indigo-500 font-bold text-sm group-hover:translate-x-0.5 transition-transform">➔</span>`;
-                        body.appendChild(card);
+                        const subs = Array.isArray(st.subjects) ? st.subjects.join(', ') : (st.subjects || 'なし'); const card = document.createElement('div'); card.className = "p-3 rounded-lg border border-gray-100 hover:border-indigo-300 bg-gray-50/50 cursor-pointer flex justify-between items-center transition group"; card.onclick = () => enterStudentRoom(st.name);
+                        card.innerHTML = `<div><div class="font-bold text-gray-800 text-sm group-hover:text-indigo-600">${escapeHtml(st.name)}</div><div class="text-[11px] text-gray-400 mt-0.5">教科: ${escapeHtml(subs)}</div></div><span class="text-indigo-500 font-bold text-sm group-hover:translate-x-0.5 transition-transform">➔</span>`; body.appendChild(card);
                     });
                 }
                 groupWrapper.appendChild(body); container.appendChild(groupWrapper);
@@ -486,8 +479,7 @@
         }
 
         function updateTeacherDropdowns() {
-            const rSelect = document.getElementById('reportTeacher'); const iSelect = document.getElementById('interviewTeacher'); const sSelect = document.getElementById('scheduleTeacher');
-            if(!rSelect || !iSelect || !sSelect) return;
+            const rSelect = document.getElementById('reportTeacher'); const iSelect = document.getElementById('interviewTeacher'); const sSelect = document.getElementById('scheduleTeacher'); if(!rSelect || !iSelect || !sSelect) return;
             rSelect.innerHTML = '<option value="">-- 講師を選択してください --</option>'; iSelect.innerHTML = '<option value="">-- 対応者を選択してください --</option>'; sSelect.innerHTML = '<option value="">-- 担当講師を選択してください --</option>';
             globalTeachers.forEach(t => {
                 const opt1 = document.createElement('option'); opt1.value = t.name; opt1.innerText = t.name; rSelect.appendChild(opt1);
@@ -497,203 +489,228 @@
         }
 
         function enterStudentRoom(studentName) {
-            currentActiveStudent = studentName;
-            const studentInfo = globalStudents.find(st => st.name === studentName);
-            if (!studentInfo) return;
-
-            document.getElementById('listViewArea').classList.add('hidden');
-            document.getElementById('adminBtn').classList.add('hidden'); 
-            document.getElementById('roomViewArea').classList.remove('hidden');
-            document.getElementById('headerTitle').innerText = `【${studentName}様】`;
-
-            document.getElementById('roomStudentName').innerText = studentInfo.name;
-            document.getElementById('roomStudentGrade').innerText = studentInfo.grade;
-            const subs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects.join(', ') : (studentInfo.subjects || 'なし');
-            document.getElementById('roomStudentSubjects').innerText = `受講教科: ${subs}`;
+            currentActiveStudent = studentName; const studentInfo = globalStudents.find(st => st.name === studentName); if (!studentInfo) return;
+            document.getElementById('listViewArea').classList.add('hidden'); document.getElementById('adminBtn').classList.add('hidden'); document.getElementById('roomViewArea').classList.remove('hidden'); document.getElementById('headerTitle').innerText = `【${studentName}様】`;
+            document.getElementById('roomStudentName').innerText = studentInfo.name; document.getElementById('roomStudentGrade').innerText = studentInfo.grade;
+            const subs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects.join(', ') : (studentInfo.subjects || 'なし'); document.getElementById('roomStudentSubjects').innerText = `受講教科: ${subs}`;
 
             const selectIds = ['reportSubject', 'scheduleSubject'];
             selectIds.forEach(id => {
                 const select = document.getElementById(id); if(!select) return; select.innerHTML = '';
                 let studentSubs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects : (studentInfo.subjects ? studentInfo.subjects.split(",") : []);
-                if (studentSubs.length > 0) {
-                    studentSubs.forEach(sub => { const opt = document.createElement('option'); opt.value = sub; opt.innerText = sub; select.appendChild(opt); });
-                } else {
-                    ['数学/算数','英語','国語','理科','社会'].forEach(sub => { const opt = document.createElement('option'); opt.value = sub; opt.innerText = sub; select.appendChild(opt); });
-                }
+                if (studentSubs.length > 0) { studentSubs.forEach(sub => { const opt = document.createElement('option'); opt.value = sub; opt.innerText = sub; select.appendChild(opt); }); } 
+                else { ['数学/算数','英語','国語','理科','社会'].forEach(sub => { const opt = document.createElement('option'); opt.value = sub; opt.innerText = sub; select.appendChild(opt); }); }
             });
 
-            resetFormToNew('report');
-            resetFormToNew('interview');
-            resetFormToNew('schedule');
+            resetFormToNew('report'); resetFormToNew('interview'); resetFormToNew('schedule'); lockScoreSection(); 
+            switchRoomTab('report'); displayRoomReminder(studentName); displayRoomTimeline(studentName); displayRoomInterviewTimeline(studentName); displayRoomScheduleTimeline(studentName); displayRoomLicenses(studentName);
 
-            switchRoomTab('report');
-            displayRoomReminder(studentName);
-            displayRoomTimeline(studentName);
-            displayRoomInterviewTimeline(studentName);
-            displayRoomScheduleTimeline(studentName);
-            displayRoomLicenses(studentName); // 検定データの読み込み表示
+            // ★【最重要追加】ピントがフォームに引っ張られて中段から始まるのを防ぎ、確実に頭から表示させる強制スクロール命令
+            window.scrollTo({ top: 0, behavior: 'instant' });
         }
 
-        function backToListView() {
-            currentActiveStudent = null;
-            document.getElementById('roomViewArea').classList.add('hidden');
-            document.getElementById('listViewArea').classList.remove('hidden');
-            document.getElementById('adminBtn').classList.remove('hidden');
-            document.getElementById('headerTitle').innerText = "塾専用・個別指導総合カルテ";
-            displayGlobalReminders(); displayGlobalSchedules();
-        }
+        function backToListView() { currentActiveStudent = null; document.getElementById('roomViewArea').classList.add('hidden'); document.getElementById('listViewArea').classList.remove('hidden'); document.getElementById('adminBtn').classList.remove('hidden'); document.getElementById('headerTitle').innerText = "塾専用・個別指導総合カルテ"; displayGlobalReminders(); displayGlobalSchedules(); }
 
         function switchRoomTab(mode) {
-            const tabs = { report: 'tabReportModeBtn', interview: 'tabInterviewModeBtn', schedule: 'tabScheduleModeBtn' };
-            const sections = { report: 'roomReportSection', interview: 'roomInterviewSection', schedule: 'roomScheduleSection' };
-            const colors = { report: 'text-indigo-700', interview: 'text-teal-700', schedule: 'text-sky-700' };
-
+            const tabs = { report: 'tabReportModeBtn', interview: 'tabInterviewModeBtn', schedule: 'tabScheduleModeBtn' }; const sections = { report: 'roomReportSection', interview: 'roomInterviewSection', schedule: 'roomScheduleSection' }; const colors = { report: 'text-indigo-700', interview: 'text-teal-700', schedule: 'text-sky-700' };
             Object.keys(tabs).forEach(k => {
-                const btn = document.getElementById(tabs[k]); const sec = document.getElementById(sections[k]);
-                if(!btn || !sec) return;
-                if (k === mode) {
-                    btn.className = `flex-1 py-2 text-center bg-white ${colors[k]} rounded-md shadow-2xs`; sec.classList.remove('hidden');
-                } else {
-                    btn.className = "flex-1 py-2 text-center text-gray-600 rounded-md"; sec.classList.add('hidden');
-                }
+                const btn = document.getElementById(tabs[k]); const sec = document.getElementById(sections[k]); if(!btn || !sec) return;
+                if (k === mode) { btn.className = `flex-1 py-2 text-center bg-white ${colors[k]} rounded-md shadow-2xs`; sec.classList.remove('hidden'); } 
+                else { btn.className = "flex-1 py-2 text-center text-gray-600 rounded-md"; sec.classList.add('hidden'); }
             });
         }
 
         function resetFormToNew(type) {
-            if (type === 'report') {
-                document.getElementById('editReportId').value = '';
-                document.getElementById('reportFormTitle').innerText = "📋 新しい指導カルテを記入";
-                document.getElementById('submitBtn').innerText = "カルテを送信して保存";
-                document.getElementById('submitBtn').className = "w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition text-sm";
-            } else if (type === 'interview') {
-                document.getElementById('editInterviewId').value = '';
-                document.getElementById('interviewFormTitle').innerText = "💬 新しい保護者面談記録を記入";
-                document.getElementById('interviewSubmitBtn').innerText = "面談記録を保存";
-                document.getElementById('interviewSubmitBtn').className = "w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition text-sm";
-            } else if (type === 'schedule') {
-                document.getElementById('editScheduleId').value = '';
-                document.getElementById('scheduleFormTitle').innerText = "🔁 新しい振替・補習予定を登録";
-                document.getElementById('scheduleSubmitBtn').innerText = "振替・補習予定を保存";
-                document.getElementById('scheduleSubmitBtn').className = "w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition text-sm";
-            }
+            if (type === 'report') { document.getElementById('editReportId').value = ''; document.getElementById('reportFormTitle').innerText = "📋 新しい指導カルテを記入"; document.getElementById('submitBtn').innerText = "カルテを送信して保存"; document.getElementById('submitBtn').className = "w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition text-sm"; } 
+            else if (type === 'interview') { document.getElementById('editInterviewId').value = ''; document.getElementById('interviewFormTitle').innerText = "💬 新しい保護者面談記録を記入"; document.getElementById('interviewSubmitBtn').innerText = "面談記録を保存"; document.getElementById('interviewSubmitBtn').className = "w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition text-sm"; } 
+            else if (type === 'schedule') { document.getElementById('editScheduleId').value = ''; document.getElementById('scheduleFormTitle').innerText = "🔁 新しい振替・補習予定を登録"; document.getElementById('scheduleSubmitBtn').innerText = "振替・補習予定を保存"; document.getElementById('scheduleSubmitBtn').className = "w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition text-sm"; }
         }
 
-        // --- ★【新機能】検定データ表示 ＆ 保存システム ---
         function displayRoomLicenses(studentName) {
-            // キャッシュから現在の生徒のデータを検索
-            const record = cacheLicenses.find(item => item.student === studentName);
-            
-            // ドロップダウンの要素を取得
-            const eikenSel = document.getElementById('licenseEiken');
-            const kankenSel = document.getElementById('licenseKanken');
-            const sukenSel = document.getElementById('licenseSuken');
-            document.getElementById('licenseSaveStatus').innerText = "";
-
-            if (record) {
-                eikenSel.value = record.eiken || "未取得";
-                kankenSel.value = record.kanken || "未取得";
-                sukenSel.value = record.suken || "未取得";
-            } else {
-                eikenSel.value = "未取得";
-                kankenSel.value = "未取得";
-                sukenSel.value = "未取得";
-            }
+            const record = cacheLicenses.find(item => item.student === studentName); const eikenSel = document.getElementById('licenseEiken'); const kankenSel = document.getElementById('licenseKanken'); const sukenSel = document.getElementById('licenseSuken'); document.getElementById('licenseSaveStatus').innerText = "";
+            if (record) { eikenSel.value = record.eiken || "未取得"; kankenSel.value = record.kanken || "未取得"; sukenSel.value = record.suken || "未取得"; } 
+            else { eikenSel.value = "未取得"; kankenSel.value = "未取得"; sukenSel.value = "未取得"; }
         }
 
         function saveStudentLicenses() {
             if (!currentActiveStudent) return;
-            
-            const eiken = document.getElementById('licenseEiken').value;
-            const kanken = document.getElementById('licenseKanken').value;
-            const suken = document.getElementById('licenseSuken').value;
-            const statusDiv = document.getElementById('licenseSaveStatus');
-
-            statusDiv.innerText = "⏳ 保存中...";
-            statusDiv.className = "text-[10px] text-amber-600 font-bold mt-2 text-right h-3";
-
-            // 1. キャッシュを先行して上書き（古いデータがあれば削除して入れ替え）
-            cacheLicenses = cacheLicenses.filter(item => item.student !== currentActiveStudent);
-            cacheLicenses.push({ id: (Date.now()).toString(), student: currentActiveStudent, eiken, kanken, suken });
-
-            // 2. スプレッドシート側の既存行を一旦削除するためのリクエスト（排他処理）
-            // スプレッドシートの重複防止のため、licensesシート上の古い該当生徒行を削除して再登録
-            fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ resource: "licenses", action: "delete", name: currentActiveStudent })
-            }).then(() => {
-                // 3. 新しい検定データを送信して保存
-                fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ resource: "licenses", student: currentActiveStudent, eiken, kanken, suken })
-                }).then(() => {
-                    statusDiv.innerText = "✓ 自動保存されました";
-                    statusDiv.className = "text-[10px] text-green-600 font-bold mt-2 text-right h-3";
-                    // 最新データを再同期
-                    fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(latest => { cacheLicenses = latest; });
-                }).catch(() => { statusDiv.innerText = "✕ 保存に失敗しました"; statusDiv.className = "text-red-500"; });
+            const eiken = document.getElementById('licenseEiken').value; const kanken = document.getElementById('licenseKanken').value; const suken = document.getElementById('licenseSuken').value; const statusDiv = document.getElementById('licenseSaveStatus');
+            statusDiv.innerText = "⏳ 保存中..."; statusDiv.className = "text-[10px] text-amber-600 font-bold mt-2 text-right h-3";
+            cacheLicenses = cacheLicenses.filter(item => item.student !== currentActiveStudent); cacheLicenses.push({ id: (Date.now()).toString(), student: currentActiveStudent, eiken, kanken, suken });
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "licenses", action: "delete", name: currentActiveStudent }) }).then(() => {
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "licenses", student: currentActiveStudent, eiken, kanken, suken }) }).then(() => { statusDiv.innerText = "✓ 自動保存されました"; statusDiv.className = "text-[10px] text-green-600 font-bold mt-2 text-right h-3"; fetch(`${GAS_URL}?resource=licenses`).then(res => res.json()).then(latest => { cacheLicenses = latest; }); }).catch(() => { statusDiv.innerText = "✕ 保存に失敗しました"; statusDiv.className = "text-red-500"; });
             });
         }
 
-        function displayRoomReminder(studentName) {
-            const display = document.getElementById('reminderContentDisplay'); const deleteBtn = document.getElementById('clearReminderBtn');
-            if(!display || !deleteBtn) return;
-            const record = globalReminders.filter(item => item.student === studentName && item.content && item.content.trim() !== "").pop();
-            
-            if (record) {
-                const formattedDate = cleanDateOnly(record.date);
-                display.innerHTML = `⏰ 対応予定期限: <span class="underline font-bold">${escapeHtml(formattedDate)}</span><br><span class="text-sm font-bold text-amber-900 mt-1 block">⚠️ ${escapeHtml(record.content)}</span>`;
-                deleteBtn.classList.remove('hidden'); 
-                currentReminderRowId = record.id;
+        function unlockScoreSection() {
+            const inputPass = document.getElementById('scorePassInput').value; const errorDiv = document.getElementById('scoreAuthError');
+            if (inputPass === SECRET_SCORE_PASSWORD) {
+                errorDiv.innerText = ""; document.getElementById('scoreAuthGate').classList.add('hidden'); document.getElementById('scoreMainContent').classList.remove('hidden'); document.getElementById('scorePassInput').value = ""; 
+                switchScoreSubTab('exam'); displayRoomExamTimeline(); displayRoomReportCardTimeline();
+            } else { errorDiv.innerText = "✕ パスワードが違います"; }
+        }
+
+        function lockScoreSection() { document.getElementById('scoreMainContent').classList.add('hidden'); document.getElementById('scoreAuthGate').classList.remove('hidden'); document.getElementById('scoreAuthError').innerText = ""; document.getElementById('scorePassInput').value = ""; }
+
+        function switchScoreSubTab(subMode) {
+            const btnExam = document.getElementById('btnSubTabExam'); const btnReport = document.getElementById('btnSubTabReport'); const secExam = document.getElementById('subSectionExam'); const secReport = document.getElementById('subSectionReport');
+            if (subMode === 'exam') {
+                btnExam.className = "flex-1 py-1.5 text-center bg-gray-600 text-white rounded"; btnReport.className = "flex-1 py-1.5 text-center text-gray-400 rounded"; secExam.classList.remove('hidden'); secReport.classList.add('hidden');
             } else {
-                display.innerText = "登録なし"; deleteBtn.classList.add('hidden'); currentReminderRowId = null;
+                btnReport.className = "flex-1 py-1.5 text-center bg-gray-600 text-white rounded"; btnExam.className = "flex-1 py-1.5 text-center text-gray-400 rounded"; secReport.classList.remove('hidden'); secExam.classList.add('hidden');
             }
         }
 
-        function submitReminder(e) {
-            e.preventDefault();
-            const input = document.getElementById('newReminderInput'); const dateInput = document.getElementById('reminderDateInput');
-            const content = input.value.trim(); const dateValue = dateInput.value;
-            if (!content || !currentActiveStudent || !dateValue) return;
-
-            const oldIdToClear = currentReminderRowId;
-            const localDummyId = (Date.now()).toString();
-
-            globalReminders = globalReminders.filter(item => item.student !== currentActiveStudent);
-            globalReminders.push({ id: localDummyId, student: currentActiveStudent, date: dateValue, content: content });
+        function displayRoomExamTimeline() {
+            const container = document.getElementById('examScoreTimeline'); if(!container) return; container.innerHTML = '';
+            const filtered = cacheExamScores.filter(item => item.student === currentActiveStudent);
+            if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-gray-400 py-2">テストデータの登録はありません</div>'; return; }
             
-            displayRoomReminder(currentActiveStudent); 
-            input.value = ''; dateInput.value = todayStr;
+            filtered.sort((a,b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
+                const total = parseInt(item.jap||0)+parseInt(item.soc||0)+parseInt(item.mat||0)+parseInt(item.sci||0)+parseInt(item.eng||0);
+                const isItemOpen = examAccordionStates[item.id] || false; 
 
-            const clearPromise = oldIdToClear 
-                ? fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", action: "delete", id: oldIdToClear }) }) 
-                : Promise.resolve();
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "bg-gray-700 rounded-lg border border-gray-600 overflow-hidden";
 
-            clearPromise.then(() => {
-                fetch(GAS_URL, { 
-                    method: "POST", 
-                    body: JSON.stringify({ resource: "reminders", student: currentActiveStudent, date: dateValue, content: content }) 
-                }).then(() => {
-                    fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; displayRoomReminder(currentActiveStudent); });
-                });
+                const headerBar = document.createElement('button');
+                headerBar.className = "w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600/50 flex justify-between items-center text-xs font-bold transition-colors border-b border-gray-600/30";
+                headerBar.innerHTML = `
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-[10px] text-gray-400">${isItemOpen ? '▼' : '▶'}</span>
+                        <span class="text-indigo-300">📊 ${escapeHtml(item.term)}</span>
+                    </div>
+                    <span class="text-gray-300 font-bold bg-indigo-950 px-1.5 py-0.5 rounded text-[10px]">5科合計: ${total}点</span>
+                `;
+                headerBar.onclick = () => {
+                    examAccordionStates[item.id] = !examAccordionStates[item.id];
+                    displayRoomExamTimeline();
+                };
+                cardWrapper.appendChild(headerBar);
+
+                const contentBody = document.createElement('div');
+                contentBody.className = `p-2.5 text-[11px] bg-gray-700/50 space-y-2 ${isItemOpen ? '' : 'hidden'}`;
+                contentBody.innerHTML = `
+                    <div class="grid grid-cols-5 gap-1 text-center text-gray-300">
+                        <div class="bg-gray-800/40 p-1 rounded">国<span class="font-bold text-white block text-xs mt-0.5">${item.jap}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">社<span class="font-bold text-white block text-xs mt-0.5">${item.soc}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">数<span class="font-bold text-white block text-xs mt-0.5">${item.mat}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">理<span class="font-bold text-white block text-xs mt-0.5">${item.sci}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">英<span class="font-bold text-white block text-xs mt-0.5">${item.eng}</span></div>
+                    </div>
+                    <div class="text-right"><button onclick="deleteExamScore('${item.id}')" class="text-red-400 text-[10px] hover:underline">🗑️ 削除</button></div>
+                `;
+                cardWrapper.appendChild(contentBody); container.appendChild(cardWrapper);
             });
+        }
+
+        function submitExamScore(e) {
+            e.preventDefault(); if (!currentActiveStudent) return;
+            const term = document.getElementById('examTerm').value;
+            const jap = document.getElementById('scoreJap').value; const soc = document.getElementById('scoreSoc').value; const mat = document.getElementById('scoreMat').value; const sci = document.getElementById('scoreSci').value; const eng = document.getElementById('scoreEng').value;
+            const dummyId = (Date.now()).toString();
+            cacheExamScores.push({ id: dummyId, student: currentActiveStudent, term, jap, soc, mat, sci, eng });
+            displayRoomExamTimeline(); alert("テスト点数を保存しました！");
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "exam_scores", student: currentActiveStudent, term, jap, soc, mat, sci, eng }) }).then(() => { fetch(`${GAS_URL}?resource=exam_scores`).then(res => res.json()).then(latest => { cacheExamScores = latest; displayRoomExamTimeline(); }); });
+            document.getElementById('scoreJap').value=''; document.getElementById('scoreSoc').value=''; document.getElementById('scoreMat').value=''; document.getElementById('scoreSci').value=''; document.getElementById('scoreEng').value='';
+        }
+
+        function deleteExamScore(id) {
+            if (!confirm("このテスト点数データを削除しますか？")) return;
+            cacheExamScores = cacheExamScores.filter(item => item.id !== id); displayRoomExamTimeline();
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "exam_scores", action: "delete", id: id }) }).then(() => { fetch(`${GAS_URL}?resource=exam_scores`).then(res => res.json()).then(latest => { cacheExamScores = latest; }); });
+        }
+
+        function displayRoomReportCardTimeline() {
+            const container = document.getElementById('reportCardTimeline'); if(!container) return; container.innerHTML = '';
+            const filtered = cacheReportCards.filter(item => item.student === currentActiveStudent);
+            if (filtered.length === 0) { container.innerHTML = '<div class="text-center text-gray-400 py-2">通知表評定の登録はありません</div>'; return; }
+            
+            filtered.sort((a,b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
+                const total = parseInt(item.jap||0)+parseInt(item.soc||0)+parseInt(item.mat||0)+parseInt(item.sci||0)+parseInt(item.eng||0)+parseInt(item.mus||0)+parseInt(item.art||0)+parseInt(item.pek||0)+parseInt(item.tec||0);
+                const isItemOpen = reportCardAccordionStates[item.id] || false;
+
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = "bg-gray-700 rounded-lg border border-gray-600 overflow-hidden";
+
+                const headerBar = document.createElement('button');
+                headerBar.className = "w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600/50 flex justify-between items-center text-xs font-bold transition-colors border-b border-gray-600/30";
+                headerBar.innerHTML = `
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-[10px] text-gray-400">${isItemOpen ? '▼' : '▶'}</span>
+                        <span class="text-teal-300">📋 ${escapeHtml(item.term)}</span>
+                    </div>
+                    <span class="text-gray-300 font-bold bg-teal-950 px-1.5 py-0.5 rounded text-[10px]">9科内申: ${total}/45</span>
+                `;
+                headerBar.onclick = () => {
+                    reportCardAccordionStates[item.id] = !reportCardAccordionStates[item.id];
+                    displayRoomReportCardTimeline();
+                };
+                cardWrapper.appendChild(headerBar);
+
+                const contentBody = document.createElement('div');
+                contentBody.className = `p-2.5 text-[11px] bg-gray-700/50 space-y-2 ${isItemOpen ? '' : 'hidden'}`;
+                contentBody.innerHTML = `
+                    <div class="grid grid-cols-5 gap-1 text-center text-gray-300">
+                        <div class="bg-gray-800/40 p-1 rounded">国<span class="font-bold text-white block text-xs mt-0.5">${item.jap}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">社<span class="font-bold text-white block text-xs mt-0.5">${item.soc}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">数<span class="font-bold text-white block text-xs mt-0.5">${item.mat}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">理<span class="font-bold text-white block text-xs mt-0.5">${item.sci}</span></div>
+                        <div class="bg-gray-800/40 p-1 rounded">英<span class="font-bold text-white block text-xs mt-0.5">${item.eng}</span></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 text-center text-gray-300 border-t border-gray-600/30 pt-1.5">
+                        <div class="bg-gray-800/20 p-1 rounded">音<span class="font-bold text-white block text-xs mt-0.5">${item.mus}</span></div>
+                        <div class="bg-gray-800/20 p-1 rounded">美<span class="font-bold text-white block text-xs mt-0.5">${item.art}</span></div>
+                        <div class="bg-gray-800/20 p-1 rounded">体<span class="font-bold text-white block text-xs mt-0.5">${item.pek}</span></div>
+                        <div class="bg-gray-800/20 p-1 rounded">技<span class="font-bold text-white block text-xs mt-0.5">${item.tec}</span></div>
+                    </div>
+                    <div class="text-right"><button onclick="deleteReportCard('${item.id}')" class="text-red-400 text-[10px] hover:underline">🗑️ 削除</button></div>
+                `;
+                cardWrapper.appendChild(contentBody); container.appendChild(cardWrapper);
+            });
+        }
+
+        function submitReportCard(e) {
+            e.preventDefault(); if (!currentActiveStudent) return;
+            const term = document.getElementById('reportTerm').value;
+            const jap = document.getElementById('naishinJap').value; const soc = document.getElementById('naishinSoc').value; const mat = document.getElementById('naishinMat').value; const sci = document.getElementById('naishinSci').value; const eng = document.getElementById('naishinEng').value;
+            const mus = document.getElementById('naishinMus').value; const art = document.getElementById('naishinArt').value; const pek = document.getElementById('naishinPek').value; const tec = document.getElementById('naishinTec').value;
+            const dummyId = (Date.now()).toString();
+            cacheReportCards.push({ id: dummyId, student: currentActiveStudent, term, jap, soc, mat, sci, eng, mus, art, pek, tec });
+            displayRoomReportCardTimeline(); alert("通知表内申点を保存しました！");
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "report_cards", student: currentActiveStudent, term, jap, soc, mat, sci, eng, mus, art, pek, tec }) }).then(() => { fetch(`${GAS_URL}?resource=report_cards`).then(res => res.json()).then(latest => { cacheReportCards = latest; displayRoomReportCardTimeline(); }); });
+            document.getElementById('naishinJap').value=''; document.getElementById('naishinSoc').value=''; document.getElementById('naishinMat').value=''; document.getElementById('naishinSci').value=''; document.getElementById('naishinEng').value='';
+            document.getElementById('naishinMus').value=''; document.getElementById('naishinArt').value=''; document.getElementById('naishinPek').value=''; document.getElementById('naishinTec').value='';
+        }
+
+        function deleteReportCard(id) {
+            if (!confirm("この通知表評定データを削除しますか？")) return;
+            cacheReportCards = cacheReportCards.filter(item => item.id !== id); displayRoomReportCardTimeline();
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "report_cards", action: "delete", id: id }) }).then(() => { fetch(`${GAS_URL}?resource=report_cards`).then(res => res.json()).then(latest => { cacheReportCards = latest; }); });
+        }
+
+        function displayRoomReminder(studentName) {
+            const display = document.getElementById('reminderContentDisplay'); const deleteBtn = document.getElementById('clearReminderBtn'); if(!display || !deleteBtn) return;
+            const record = globalReminders.filter(item => item.student === studentName && item.content && item.content.trim() !== "").pop();
+            if (record) { const formattedDate = cleanDateOnly(record.date); display.innerHTML = `⏰ 対応予定期限: <span class="underline font-bold">${escapeHtml(formattedDate)}</span><br><span class="text-sm font-bold text-amber-900 mt-1 block">⚠️ ${escapeHtml(record.content)}</span>`; deleteBtn.classList.remove('hidden'); currentReminderRowId = record.id; } 
+            else { display.innerText = "登録なし"; deleteBtn.classList.add('hidden'); currentReminderRowId = null; }
+        }
+
+        function submitReminder(e) {
+            e.preventDefault(); const input = document.getElementById('newReminderInput'); const dateInput = document.getElementById('reminderDateInput'); const content = input.value.trim(); const dateValue = dateInput.value; if (!content || !currentActiveStudent || !dateValue) return;
+            const oldIdToClear = currentReminderRowId; const localDummyId = (Date.now()).toString();
+            globalReminders = globalReminders.filter(item => item.student !== currentActiveStudent); globalReminders.push({ id: localDummyId, student: currentActiveStudent, date: dateValue, content: content });
+            displayRoomReminder(currentActiveStudent); input.value = ''; dateInput.value = todayStr;
+            const clearPromise = oldIdToClear ? fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", action: "delete", id: oldIdToClear }) }) : Promise.resolve();
+            clearPromise.then(() => { fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", student: currentActiveStudent, date: dateValue, content: content }) }).then(() => { fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; displayRoomReminder(currentActiveStudent); }); }); });
         }
 
         function clearReminder() {
-            if (!currentReminderRowId || !currentActiveStudent) return;
-            const idToDelete = currentReminderRowId;
-
-            globalReminders = globalReminders.filter(item => item.id !== idToDelete && item.student !== currentActiveStudent); 
-            displayRoomReminder(currentActiveStudent);
-
-            fetch(GAS_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ resource: "reminders", action: "delete", id: idToDelete }) 
-            }).then(() => { 
-                fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; displayRoomReminder(currentActiveStudent); }); 
-            });
+            if (!currentReminderRowId || !currentActiveStudent) return; const idToDelete = currentReminderRowId;
+            globalReminders = globalReminders.filter(item => item.id !== idToDelete && item.student !== currentActiveStudent); displayRoomReminder(currentActiveStudent);
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reminders", action: "delete", id: idToDelete }) }).then(() => { fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(latest => { globalReminders = latest; displayRoomReminder(currentActiveStudent); }); });
         }
 
-        // --- 指導カルテ履歴システム ---
         function displayRoomTimeline(studentName) {
             const timeline = document.getElementById('timeline'); if(!timeline) return; const filteredData = cacheReports.filter(item => item.student === studentName); timeline.innerHTML = '';
             if (filteredData.length === 0) { timeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">指導履歴はまだありません。</div>'; return; }
@@ -705,15 +722,14 @@
                 headerBar.onclick = () => { reportAccordionStates[item.id] = !reportAccordionStates[item.id]; displayRoomTimeline(studentName); };
                 cardWrapper.appendChild(headerBar);
                 const contentBody = document.createElement('div'); contentBody.className = `p-3 text-xs space-y-2 border-t border-dashed border-gray-100 ${isItemOpen ? '' : 'hidden'}`;
-                contentBody.innerHTML = `<div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div><div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div><div class="pt-1.5 border-t border-gray-100 mt-1"><strong class="text-gray-500 block mb-0.5">【補 足】</strong><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div><div class="flex justify-end gap-2 pt-2 border-t border-gray-50"><button onclick="readyEditReport('${item.id}')" class="text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteReport('${item.id}', '${escapeHtml(studentName)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-[11px] transition">🗑️ 削除</button></div>`;
+                contentBody.innerHTML = `<div><strong class="text-gray-500">【進 度】</strong> ${escapeHtml(item.progress || '未入力')}</div><div><strong class="text-gray-500">【宿 題】</strong> ${escapeHtml(item.homework || '未入力')}</div><div class="pt-1.5 border-t border-dashed mt-1"><strong class="text-gray-500 block mb-0.5">【補 足】</strong><p class="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p></div><div class="flex justify-end gap-2 pt-2 border-t border-gray-50"><button onclick="readyEditReport('${item.id}')" class="text-indigo-600 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded text-[11px] transition">✏️ 編集</button><button onclick="deleteReport('${item.id}', '${escapeHtml(studentName)}')" class="text-red-500 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-[11px] transition">🗑️ 削除</button></div>`;
                 cardWrapper.appendChild(contentBody); timeline.appendChild(cardWrapper);
             });
         }
 
         function readyEditReport(id) {
             const item = cacheReports.find(r => r.id === id); if (!item) return;
-            document.getElementById('editReportId').value = item.id;
-            if (item.date) document.getElementById('reportDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            document.getElementById('editReportId').value = item.id; if (item.date) document.getElementById('reportDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
             document.getElementById('reportSubject').value = item.subject; document.getElementById('reportTeacher').value = item.teacher; document.getElementById('reportProgress').value = item.progress || ''; document.getElementById('reportHomework').value = item.homework || ''; document.getElementById('reportContent').value = item.content || '';
             document.getElementById('reportFormTitle').innerText = "✏️ 指導カルテを修正中..."; document.getElementById('submitBtn').innerText = "🔧 変更内容を上書き保存する"; document.getElementById('submitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -740,7 +756,6 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", action: "delete", id: reportId }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
         }
 
-        // --- 面談記録システム ---
         function displayRoomInterviewTimeline(studentName) {
             const iTimeline = document.getElementById('interviewTimeline'); const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
             if (filteredData.length === 0) { iTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">過去の面談記録はありません。</div>'; return; }
@@ -753,8 +768,7 @@
 
         function readyEditInterview(id) {
             const item = cacheInterviews.find(i => i.id === id); if (!item) return;
-            document.getElementById('editInterviewId').value = item.id;
-            if (item.date) document.getElementById('interviewDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            document.getElementById('editInterviewId').value = item.id; if (item.date) document.getElementById('interviewDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
             document.getElementById('interviewTeacher').value = item.teacher; document.getElementById('interviewContent').value = item.content || '';
             document.getElementById('interviewFormTitle').innerText = "✏️ 保護者面談記録を修正中..."; document.getElementById('interviewSubmitBtn').innerText = "🔧 面談記録を上書き保存"; document.getElementById('interviewSubmitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -781,7 +795,6 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", action: "delete", id: interviewId }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; }); });
         }
 
-        // --- 振替・補習システム ---
         function displayRoomScheduleTimeline(studentName) {
             const sTimeline = document.getElementById('scheduleTimeline'); if(!sTimeline) return; const filteredData = cacheSchedules.filter(item => item.student === studentName); sTimeline.innerHTML = '';
             if (filteredData.length === 0) { sTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">登録済みの予定はありません。</div>'; return; }
@@ -795,8 +808,7 @@
 
         function readyEditSchedule(id) {
             const item = cacheSchedules.find(s => s.id === id); if (!item) return;
-            document.getElementById('editScheduleId').value = item.id;
-            if (item.date) document.getElementById('scheduleDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
+            document.getElementById('editScheduleId').value = item.id; if (item.date) document.getElementById('scheduleDate').value = String(item.date).substring(0, 10).replace(/\//g, '-');
             document.getElementById('scheduleSubject').value = item.subject; document.getElementById('scheduleTeacher').value = item.teacher; document.getElementById('scheduleContent').value = item.content || '';
             document.getElementById('scheduleFormTitle').innerText = "✏️ 振替・補習予定を修正中..."; document.getElementById('scheduleSubmitBtn').innerText = "🔧 予定を上書き保存"; document.getElementById('scheduleSubmitBtn').className = "w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition text-sm shadow-md";
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -823,7 +835,6 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "schedules", action: "delete", id: id }) }).then(() => { fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(latest => { cacheSchedules = latest; }); });
         }
 
-        // --- 塾データ追加・削除処理群 ---
         function addStudent(e) {
             e.preventDefault(); const nameInput = document.getElementById('newStudentName'); const name = nameInput.value.trim(); if (globalStudents.some(st => st.name === name)) { alert("その生徒は既に登録されています。"); return; }
             const grade = document.getElementById('newStudentGrade').value; const subjects = Array.from(document.querySelectorAll('input[name="newSubjects"]:checked')).map(cb => cb.value);
