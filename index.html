@@ -252,6 +252,8 @@
                             <option value="高校生">高校生</option><option value="中3集団">中3集団</option><option value="中3個別">中3個別</option>
                             <option value="中2集団">中2集団</option><option value="中2個別">中2個別</option><option value="中1集団">中1集団</option>
                             <option value="中1個別">中1個別</option><option value="小学生">小学生</option>
+                            <!-- ★【新設】マスター登録側に「外部生」を追加 -->
+                            <option value="外部生">外部生</option>
                         </select>
                     </div>
                     <div class="mb-2">
@@ -289,7 +291,8 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwBowSWnS7rKK5YF_THnVpzP_ufC0NQIqObyqyi0Y4V9eLccHfxYmIqlL2b3-ziVV2n5A/exec";
 
-        const GROUP_NAMES = ["高校生", "中3集団", "中3個別", "中2集団", "中2個別", "中1集団", "中1個別", "小学生"];
+        // ★【新設】アコーディオンのグループ定義の最後に「外部生」を投入
+        const GROUP_NAMES = ["高校生", "中3集団", "中3個別", "中2集団", "中2個別", "中1集団", "中1個別", "小学生", "外部生"];
         let accordionStates = {};
         GROUP_NAMES.forEach(g => { accordionStates[g] = false; });
 
@@ -303,6 +306,7 @@
         let cacheSchedules = []; 
         let currentActiveStudent = null; 
         let currentReminderRowId = null; 
+        let isAppLoaded = false; // 二重解除防止フラグ
 
         const todayStr = new Date().toISOString().substring(0, 10);
         document.getElementById('reportDate').value = todayStr;
@@ -310,15 +314,19 @@
         document.getElementById('scheduleDate').value = todayStr;
         document.getElementById('reminderDateInput').value = todayStr;
         
-        // 初期データ同期ロード
-        Promise.all([
-            fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; }),
-            fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; }).catch(() => { globalTeachers = []; }),
-            fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(data => { globalReminders = data; }),
-            fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(data => { cacheReports = data; }),
-            fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(data => { cacheInterviews = data; }),
-            fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(data => { cacheSchedules = data; }).catch(() => { cacheSchedules = []; })
-        ]).then(() => {
+        // セーフティ機能：5秒経っても通信が終わらない場合は強制的に画面を開く
+        setTimeout(() => {
+            if (!isAppLoaded) {
+                console.warn("データ同期がタイムアウトしたため、ローディングを強制解除しました。");
+                closeLoader();
+            }
+        }, 5000);
+
+        function closeLoader() {
+            if (isAppLoaded) return;
+            isAppLoaded = true;
+            
+            // UIのリフレッシュ
             renderAccordionStudentMenu();
             renderAdminStudentList();
             updateTeacherDropdowns();
@@ -327,16 +335,31 @@
             displayGlobalSchedules();
 
             const loader = document.getElementById('appInitLoader');
-            loader.classList.add('opacity-0');
-            setTimeout(() => loader.remove(), 300);
-        }).catch(() => {
-            alert("同期に失敗しました。再読み込みしてください。");
+            if (loader) {
+                loader.classList.add('opacity-0');
+                setTimeout(() => loader.remove(), 300);
+            }
+        }
+
+        // 各通信が失敗（catch）しても、空配列を入れて必ず全体の処理を進める仕組み
+        Promise.all([
+            fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => { globalStudents = data; }).catch(() => { globalStudents = []; }),
+            fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => { globalTeachers = data; }).catch(() => { globalTeachers = []; }),
+            fetch(`${GAS_URL}?resource=reminders`).then(res => res.json()).then(data => { globalReminders = data; }).catch(() => { globalReminders = []; }),
+            fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(data => { cacheReports = data; }).catch(() => { cacheReports = []; }),
+            fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(data => { cacheInterviews = data; }).catch(() => { cacheInterviews = []; }),
+            fetch(`${GAS_URL}?resource=schedules`).then(res => res.json()).then(data => { cacheSchedules = data; }).catch(() => { cacheSchedules = []; })
+        ]).then(() => {
+            closeLoader();
+        }).catch((err) => {
+            console.error("データ同期中に致命的な例外が発生しました:", err);
+            closeLoader();
         });
 
         function fetchStudents() {
             fetch(`${GAS_URL}?resource=students`).then(res => res.json()).then(data => {
                 globalStudents = data; renderAccordionStudentMenu(); renderAdminStudentList();
-            });
+            }).catch(() => {});
         }
         function fetchTeachers() {
             fetch(`${GAS_URL}?resource=teachers`).then(res => res.json()).then(data => {
@@ -352,6 +375,7 @@
 
         function displayGlobalReminders() {
             const listContainer = document.getElementById('globalReminderList');
+            if (!listContainer) return;
             const activeReminders = globalReminders.filter(item => item.content && item.content.trim() !== "");
             listContainer.innerHTML = '';
             if (activeReminders.length === 0) {
@@ -370,6 +394,7 @@
 
         function displayGlobalSchedules() {
             const listContainer = document.getElementById('globalScheduleList');
+            if (!listContainer) return;
             listContainer.innerHTML = '';
             if (cacheSchedules.length === 0) {
                 listContainer.innerHTML = '<div class="text-center text-gray-400 py-3 text-xs">現在、登録されている振替・補習予定はありません。</div>'; return;
@@ -393,7 +418,7 @@
         }
 
         function renderAccordionStudentMenu() {
-            const container = document.getElementById('accordionContainer'); container.innerHTML = '';
+            const container = document.getElementById('accordionContainer'); if (!container) return; container.innerHTML = '';
             GROUP_NAMES.forEach(groupName => {
                 const studentsInGroup = globalStudents.filter(st => st.grade === groupName);
                 const groupWrapper = document.createElement('div');
@@ -425,6 +450,7 @@
 
         function updateTeacherDropdowns() {
             const rSelect = document.getElementById('reportTeacher'); const iSelect = document.getElementById('interviewTeacher'); const sSelect = document.getElementById('scheduleTeacher');
+            if(!rSelect || !iSelect || !sSelect) return;
             rSelect.innerHTML = '<option value="">-- 講師を選択してください --</option>'; iSelect.innerHTML = '<option value="">-- 対応者を選択してください --</option>'; sSelect.innerHTML = '<option value="">-- 担当講師を選択してください --</option>';
             globalTeachers.forEach(t => {
                 const opt1 = document.createElement('option'); opt1.value = t.name; opt1.innerText = t.name; rSelect.appendChild(opt1);
@@ -450,7 +476,7 @@
 
             const selectIds = ['reportSubject', 'scheduleSubject'];
             selectIds.forEach(id => {
-                const select = document.getElementById(id); select.innerHTML = '';
+                const select = document.getElementById(id); if(!select) return; select.innerHTML = '';
                 let studentSubs = Array.isArray(studentInfo.subjects) ? studentInfo.subjects : (studentInfo.subjects ? studentInfo.subjects.split(",") : []);
                 if (studentSubs.length > 0) {
                     studentSubs.forEach(sub => { const opt = document.createElement('option'); opt.value = sub; opt.innerText = sub; select.appendChild(opt); });
@@ -486,6 +512,7 @@
 
             Object.keys(tabs).forEach(k => {
                 const btn = document.getElementById(tabs[k]); const sec = document.getElementById(sections[k]);
+                if(!btn || !sec) return;
                 if (k === mode) {
                     btn.className = `flex-1 py-2 text-center bg-white ${colors[k]} rounded-md shadow-2xs`; sec.classList.remove('hidden');
                 } else {
@@ -515,6 +542,7 @@
 
         function displayRoomReminder(studentName) {
             const display = document.getElementById('reminderContentDisplay'); const deleteBtn = document.getElementById('clearReminderBtn');
+            if(!display || !deleteBtn) return;
             const record = globalReminders.filter(item => item.student === studentName && item.content && item.content.trim() !== "").pop();
             
             if (record) {
@@ -573,7 +601,7 @@
 
         // --- 指導カルテ履歴システム ---
         function displayRoomTimeline(studentName) {
-            const timeline = document.getElementById('timeline'); const filteredData = cacheReports.filter(item => item.student === studentName); timeline.innerHTML = '';
+            const timeline = document.getElementById('timeline'); if(!timeline) return; const filteredData = cacheReports.filter(item => item.student === studentName); timeline.innerHTML = '';
             if (filteredData.length === 0) { timeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">指導履歴はまだありません。</div>'; return; }
             filteredData.sort((a, b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
                 const cleanDate = cleanDateOnly(item.date); const isItemOpen = reportAccordionStates[item.id] || false;
@@ -620,7 +648,7 @@
 
         // --- 面談記録システム ---
         function displayRoomInterviewTimeline(studentName) {
-            const iTimeline = document.getElementById('interviewTimeline'); const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
+            const iTimeline = document.getElementById('interviewTimeline'); if(!iTimeline) return; const filteredData = cacheInterviews.filter(item => item.student === studentName); iTimeline.innerHTML = '';
             if (filteredData.length === 0) { iTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">過去の面談記録はありません。</div>'; return; }
             filteredData.sort((a, b) => parseInt(b.id) - parseInt(a.id)).forEach(item => {
                 const card = document.createElement('div'); card.className = "bg-white p-4 rounded-xl shadow-xs border border-teal-200 relative bg-teal-50/10"; const cleanDate = cleanDateOnly(item.date);
@@ -661,7 +689,7 @@
 
         // --- 振替・補習システム ---
         function displayRoomScheduleTimeline(studentName) {
-            const sTimeline = document.getElementById('scheduleTimeline'); const filteredData = cacheSchedules.filter(item => item.student === studentName); sTimeline.innerHTML = '';
+            const sTimeline = document.getElementById('scheduleTimeline'); if(!sTimeline) return; const filteredData = cacheSchedules.filter(item => item.student === studentName); sTimeline.innerHTML = '';
             if (filteredData.length === 0) { sTimeline.innerHTML = '<div class="text-center text-gray-400 py-6 text-xs">登録済みの予定はありません。</div>'; return; }
             filteredData.sort((a, b) => new Date(a.date) - new Date(b.date)); 
             filteredData.forEach(item => {
@@ -725,14 +753,14 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "teachers", action: "delete", name: name }) }).then(() => fetchTeachers());
         }
         function renderAdminStudentList() {
-            const list = document.getElementById('adminStudentList'); list.innerHTML = '';
+            const list = document.getElementById('adminStudentList'); if(!list) return; list.innerHTML = '';
             globalStudents.forEach(st => {
                 const div = document.createElement('div'); div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                 div.innerHTML = `<div><strong>${escapeHtml(st.name)}</strong> (${escapeHtml(st.grade)})</div><button onclick="deleteStudent('${st.id}', '${escapeHtml(st.name)}')" class="text-red-500 font-bold px-1">削除</button>`; list.appendChild(div);
             });
         }
         function renderAdminTeacherList() {
-            const list = document.getElementById('adminTeacherList'); list.innerHTML = ''; if (globalTeachers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">登録された講師はいません。</div>'; return; }
+            const list = document.getElementById('adminTeacherList'); if(!list) return; list.innerHTML = ''; if (globalTeachers.length === 0) { list.innerHTML = '<div class="text-gray-400 text-center py-4">登録された講師はいません。</div>'; return; }
             globalTeachers.forEach(t => {
                 const div = document.createElement('div'); div.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                 div.innerHTML = `<div><strong>${escapeHtml(t.name)}</strong></div><button onclick="deleteTeacher('${t.id}', '${escapeHtml(t.name)}')" class="text-red-500 font-bold px-1">削除</button>`; list.appendChild(div);
