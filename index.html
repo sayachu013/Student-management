@@ -191,7 +191,7 @@
             </div>
 
             <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold shadow-2xs gap-0.5">
-                <button id="tabReportModeBtn" onclick="switchRoomTab('report')" class="flex-1 py-2 text-center bg-white text-indigo-700 rounded-md shadow-2xs">📋 指指導カルテ</button>
+                <button id="tabReportModeBtn" onclick="switchRoomTab('report')" class="flex-1 py-2 text-center bg-white text-indigo-700 rounded-md shadow-2xs">📋 指導カルテ</button>
                 <button id="tabInterviewModeBtn" onclick="switchRoomTab('interview')" class="flex-1 py-2 text-center text-gray-600 rounded-md">💬 面談記録</button>
                 <button id="tabScheduleModeBtn" onclick="switchRoomTab('schedule')" class="flex-1 py-2 text-center text-gray-600 rounded-md">🔁 振替・補習</button>
             </div>
@@ -687,8 +687,13 @@
         }
 
         function submitReminder(e) {
-            e.preventDefault(); const input = document.getElementById('newReminderInput'); const dateInput = document.getElementById('reminderDateInput'); const content = input.value.trim(); let dateValue = dateInput.value;
-if (dateValue && dateValue.length === 10) dateValue += " 09:00:00"; if (!content || !currentActiveStudent || !dateValue) return;
+            e.preventDefault(); const input = document.getElementById('newReminderInput'); const dateInput = document.getElementById('reminderDateInput'); const content = input.value.trim(); 
+            
+            // 📅 リマインダ日付の前日ズレ防止（09:00:00明示）
+            let dateValue = dateInput.value;
+            if (dateValue && dateValue.length === 10) dateValue += " 09:00:00";
+            
+            if (!content || !currentActiveStudent || !dateValue) return;
             const oldIdToClear = currentReminderRowId; const localDummyId = (Date.now()).toString();
             globalReminders = globalReminders.filter(item => !((item.student || item.name || '').trim() === currentActiveStudent)); globalReminders.push({ id: localDummyId, student: currentActiveStudent, date: dateValue, content: content });
             displayRoomReminder(currentActiveStudent); input.value = ''; dateInput.value = todayStr;
@@ -732,16 +737,23 @@ if (dateValue && dateValue.length === 10) dateValue += " 09:00:00"; if (!content
 
         function submitReport(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
-            const editId = document.getElementById('editReportId').value; let date = document.getElementById('reportDate').value;
-if (date && date.length === 10) date += " 09:00:00"; // 時間を明示して前日落ちを防ぐ const subject = document.getElementById('reportSubject').value; const teacher = document.getElementById('reportTeacher').value; const progress = document.getElementById('reportProgress').value; const homework = document.getElementById('reportHomework').value; const content = document.getElementById('reportContent').value;
+            const editId = document.getElementById('editReportId').value; 
+            
+            // 📅 指導カルテ日付の前日ズレ防止（09:00:00明示）
+            let reportDateVal = document.getElementById('reportDate').value;
+            if (reportDateVal && reportDateVal.length === 10) {
+                reportDateVal += " 09:00:00";
+            }
+            
+            const subject = document.getElementById('reportSubject').value; const teacher = document.getElementById('reportTeacher').value; const progress = document.getElementById('reportProgress').value; const homework = document.getElementById('reportHomework').value; const content = document.getElementById('reportContent').value;
             if (editId) {
-                const index = cacheReports.findIndex(r => r.id === editId); if (index !== -1) cacheReports[index] = { id: editId, student: currentActiveStudent, date, subject, teacher, progress, homework, content };
+                const index = cacheReports.findIndex(r => r.id === editId); if (index !== -1) cacheReports[index] = { id: editId, student: currentActiveStudent, date: reportDateVal, subject, teacher, progress, homework, content };
                 displayRoomTimeline(currentActiveStudent); resetFormToNew('report'); alert("カルテの変更内容を上書き保存しました！");
-                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", action: "edit", id: editId, date, student: currentActiveStudent, subject, teacher, progress, homework, content }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", action: "edit", id: editId, date: reportDateVal, student: currentActiveStudent, subject, teacher, progress, homework, content }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; }); });
             } else {
-                const dummyId = (Date.now()).toString(); cacheReports.push({ id: dummyId, student: currentActiveStudent, date, subject, teacher, progress, homework, content });
+                const dummyId = (Date.now()).toString(); cacheReports.push({ id: dummyId, student: currentActiveStudent, date: reportDateVal, subject, teacher, progress, homework, content });
                 displayRoomTimeline(currentActiveStudent); alert("カルテを保存しました！");
-                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", date, student: currentActiveStudent, subject, teacher, progress, homework, content }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; displayRoomTimeline(currentActiveStudent); }); });
+                fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "reports", date: reportDateVal, student: currentActiveStudent, subject, teacher, progress, homework, content }) }).then(() => { fetch(`${GAS_URL}?resource=reports`).then(res => res.json()).then(latest => { cacheReports = latest; displayRoomTimeline(currentActiveStudent); }); });
             }
             document.getElementById('reportProgress').value = ''; document.getElementById('reportHomework').value = ''; document.getElementById('reportContent').value = '';
         }
@@ -772,8 +784,13 @@ if (date && date.length === 10) date += " 09:00:00"; // 時間を明示して前
 
         function submitInterview(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
-            const editId = document.getElementById('editInterviewId').value; let date = document.getElementById('interviewDate').value;
-if (date && date.length === 10) date += " 09:00:00"; const teacher = document.getElementById('interviewTeacher').value; const content = document.getElementById('interviewContent').value;
+            const editId = document.getElementById('editInterviewId').value; 
+            
+            // 📅 面談記録日付の前日ズレ防止（09:00:00明示）
+            let date = document.getElementById('interviewDate').value;
+            if (date && date.length === 10) date += " 09:00:00";
+            
+            const teacher = document.getElementById('interviewTeacher').value; const content = document.getElementById('interviewContent').value;
             if (editId) {
                 const index = cacheInterviews.findIndex(i => i.id === editId); if (index !== -1) cacheInterviews[index] = { id: editId, student: currentActiveStudent, date, teacher, content };
                 displayRoomInterviewTimeline(currentActiveStudent); resetFormToNew('interview'); alert("面談記録を上書き保存しました！");
@@ -813,8 +830,13 @@ if (date && date.length === 10) date += " 09:00:00"; const teacher = document.ge
 
         function submitSchedule(e) {
             e.preventDefault(); if (!currentActiveStudent) return;
-            const editId = document.getElementById('editScheduleId').value; let date = document.getElementById('scheduleDate').value;
-if (date && date.length === 10) date += " 09:00:00"; const subject = document.getElementById('scheduleSubject').value; const teacher = document.getElementById('scheduleTeacher').value; const content = document.getElementById('scheduleContent').value;
+            const editId = document.getElementById('editScheduleId').value; 
+            
+            // 📅 振替補習日付の前日ズレ防止（09:00:00明示）
+            let date = document.getElementById('scheduleDate').value;
+            if (date && date.length === 10) date += " 09:00:00";
+            
+            const subject = document.getElementById('scheduleSubject').value; const teacher = document.getElementById('scheduleTeacher').value; const content = document.getElementById('scheduleContent').value;
             if (editId) {
                 const index = cacheSchedules.findIndex(s => s.id === editId); if (index !== -1) cacheSchedules[index] = { id: editId, student: currentActiveStudent, date, subject, teacher, content };
                 displayRoomScheduleTimeline(currentActiveStudent); resetFormToNew('schedule'); alert("予定を上書き保存しました！");
