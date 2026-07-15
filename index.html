@@ -591,10 +591,14 @@
                 const isItemOpen = examAccordionStates[item.id] || false; 
                 const cardWrapper = document.createElement('div'); cardWrapper.className = "bg-gray-700 rounded-lg border border-gray-600 overflow-hidden";
                 const headerBar = document.createElement('button'); headerBar.className = "w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600/50 flex justify-between items-center text-xs font-bold transition-colors border-b border-gray-600/30";
-                headerBar.innerHTML = `<div class="flex items-center gap-1.5 min-w-0"><span class="text-[10px] text-gray-400">${isItemOpen ? '▼' : '▶'}</span><span class="text-indigo-300">📊 ${escapeHtml(item.term)}${item.rank ? ' ('+escapeHtml(item.rank)+')' : ''}</span></div><span class="text-gray-300 font-bold bg-indigo-950 px-1.5 py-0.5 rounded text-[10px] shrink-0">5科: ${total}点</span>`;
+                headerBar.innerHTML = `<div class="flex items-center gap-1.5 min-w-0"><span class="text-[10px] text-gray-400">${isItemOpen ? '▼' : '▶'}</span><span class="text-indigo-300">📊 ${escapeHtml(item.term)}</span></div><span class="text-gray-300 font-bold bg-indigo-950 px-1.5 py-0.5 rounded text-[10px] shrink-0">5科: ${total}点</span>`;
                 headerBar.onclick = () => { examAccordionStates[item.id] = !examAccordionStates[item.id]; displayRoomExamTimeline(); }; cardWrapper.appendChild(headerBar);
                 const contentBody = document.createElement('div'); contentBody.className = `p-2.5 text-[11px] bg-gray-700/50 space-y-2 ${isItemOpen ? '' : 'hidden'}`;
-                contentBody.innerHTML = `<div class="grid grid-cols-5 gap-1 text-center text-gray-300"><div class="bg-gray-800/40 p-1 rounded">国<span class="font-bold text-white block text-xs mt-0.5">${item.jap || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">社<span class="font-bold text-white block text-xs mt-0.5">${item.soc || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">数<span class="font-bold text-white block text-xs mt-0.5">${item.mat || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">理<span class="font-bold text-white block text-xs mt-0.5">${item.sci || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">英<span class="font-bold text-white block text-xs mt-0.5">${item.eng || 0}</span></div></div><div class="text-right"><button onclick="deleteExamScore('${item.id}')" class="text-red-400 text-[10px] hover:underline">🗑️ 削除</button></div>`;
+                
+                // 🏆 学年順位表示エリア（スプレッドシートのrank列と完全同期）
+                const rankHtml = item.rank ? `<div class="text-right text-[10px] text-amber-400 font-bold mt-1">🏆 学年順位: ${escapeHtml(item.rank)}</div>` : '';
+                
+                contentBody.innerHTML = `<div class="grid grid-cols-5 gap-1 text-center text-gray-300"><div class="bg-gray-800/40 p-1 rounded">国<span class="font-bold text-white block text-xs mt-0.5">${item.jap || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">社<span class="font-bold text-white block text-xs mt-0.5">${item.soc || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">数<span class="font-bold text-white block text-xs mt-0.5">${item.mat || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">理<span class="font-bold text-white block text-xs mt-0.5">${item.sci || 0}</span></div><div class="bg-gray-800/40 p-1 rounded">英<span class="font-bold text-white block text-xs mt-0.5">${item.eng || 0}</span></div></div>${rankHtml}<div class="text-right mt-1.5"><button onclick="deleteExamScore('${item.id}')" class="text-red-400 text-[10px] hover:underline">🗑️ 削除</button></div>`;
                 cardWrapper.appendChild(contentBody); container.appendChild(cardWrapper);
             });
         }
@@ -606,7 +610,7 @@
             const dummyId = (Date.now()).toString(); cacheExamScores.push({ id: dummyId, student: currentActiveStudent, term, rank, jap, soc, mat, sci, eng });
             displayRoomExamTimeline(); alert("テスト点数を保存しました！");
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "exam_scores", student: currentActiveStudent, term, rank, jap, soc, mat, sci, eng }) }).then(() => { fetch(`${GAS_URL}?resource=exam_scores`).then(res => res.json()).then(latest => { cacheExamScores = latest; displayRoomExamTimeline(); }); });
-            document.getElementById('scoreJap').value=''; document.getElementById('scoreSoc').value=''; document.getElementById('scoreMat').value=''; document.getElementById('scoreSci').value=''; document.getElementById('scoreEng').value='';
+            document.getElementById('scoreJap').value=''; document.getElementById('scoreSoc').value=''; document.getElementById('scoreMat').value=''; document.getElementById('scoreSci').value=''; document.getElementById('scoreEng').value=''; document.getElementById('scoreRank').value='';
         }
 
         function deleteExamScore(id) {
@@ -801,12 +805,6 @@
                 fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", date, student: currentActiveStudent, teacher, content }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; displayRoomInterviewTimeline(currentActiveStudent); }); });
             }
             document.getElementById('interviewContent').value = '';
-        }
-
-        function deleteInterview(interviewId, studentName) {
-            if (!confirm("本当にこの面談記録を削除しますか？")) return;
-            cacheInterviews = cacheInterviews.filter(item => item.id !== interviewId); displayRoomInterviewTimeline(studentName);
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ resource: "interviews", action: "delete", id: interviewId }) }).then(() => { fetch(`${GAS_URL}?resource=interviews`).then(res => res.json()).then(latest => { cacheInterviews = latest; }); });
         }
 
         function displayRoomScheduleTimeline(studentName) {
